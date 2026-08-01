@@ -44,3 +44,14 @@ class EquipmentReviewResponse(BaseModel):
     content: str | None
     created_at: datetime | None
 
+
+class EquipmentReviewSample(BaseModel):
+    quote: str
+    equipment_id: str
+    equipment_name: str
+
+
+class EquipmentReviewsSummary(BaseModel):
+    total_count: int
+    sample: EquipmentReviewSample | None
+

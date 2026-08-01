@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import HudNav from './components/HudNav.vue'
 import S1Home from './components/S1Home.vue'
 import S2Routes from './components/S2Routes.vue'
@@ -7,6 +7,9 @@ import S3Detail from './components/S3Detail.vue'
 import S4Exec from './components/S4Exec.vue'
 import S5Library from './components/S5Library.vue'
 import S6Gear from './components/S6Gear.vue'
+import { ensureSession } from './store'
+
+onMounted(ensureSession)
 
 const screens = [
   { id: 's1', label: '01 需求输入', comp: S1Home },

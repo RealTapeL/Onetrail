@@ -14,7 +14,7 @@ def test_empty_catalog_has_no_fake_data() -> None:
     with TestClient(app) as client:
         response = client.get("/api/v1/routes")
     assert response.status_code == 200
-    assert response.json() == []
+    assert response.json() == {"total": 0, "page": 1, "items": []}
 
 
 def test_recommendation_refuses_to_invent_external_data() -> None:

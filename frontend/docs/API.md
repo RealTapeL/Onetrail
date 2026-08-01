@@ -1,8 +1,27 @@
-# ONE TRAIL · 后端接口契约（v0.1 草案）
+# ONE TRAIL · 后端接口契约（v0.2 已对齐）
 
 > 读者：后端开发。本文档从前端原型（Vue 3，`one-trail-app/`）中写死的 mock 数据反推而来。
 > 前端 6 屏目前全部是静态数据，接入时逐屏替换为下列接口即可。
 > 字段命名、枚举取值都可以商量，本文档是**对齐用的初稿**，不是约束。
+
+---
+
+## 2026-08 联调对齐结果（以此为准）
+
+前端 6 屏已接入真实后端，实际生效的契约与本文档初稿有以下差异：
+
+- **认证**：使用后端已有的邮箱+密码+JWT（`POST /api/v1/auth/register|login`、`GET /api/v1/profile/me`）。前端预设演示账号 `admin@onetrail.dev / admin123456`，首次启动自动注册登录。手机号+验证码未实现。
+- **推荐**：`POST /api/v1/recommendations/plan` 同步返回完整结果（Top 5 `routes` + `alternates` 备选 + 每路线 `risk_notes`/交通/补给/装备建议），不落库，因此没有 `GET /recommendations/{id}`；S2/S4 由前端共享状态驱动。
+- **plans 模块未实现**：S4 的交通/补给/装备清单直接来自推荐响应；checklist 勾选为前端本地状态。时间线与海拔剖面因无真实数据源，保留设计稿静态展示并已在界面标注"示意/演示"。
+- **路线库**：`GET /api/v1/routes` 响应为 `{total, page, items}`（分页参数 `page/page_size`），条目含 `level`（难度映射 easy→1/moderate→2/hard→4/expert→5）与 `average_rating`；筛选参数 `query/tag/level_min/level_max/max_distance_km/crowd`。
+- **路线详情**：`GET /api/v1/routes/{id}` 含 `suitable_for`、`average_rating`、`review_count`、`impression_stats`（气质投票计数，前端换算百分比）；评价列表单独走 `GET /api/v1/routes/{id}/reviews`；verdict 由评分聚合前端推导。
+- **新增**：`GET /api/v1/meta/brand-stats`（真实统计）、`GET /api/v1/meta/weather-tip?latitude&longitude`（高德天气胶囊，未配置返回 424）、`GET /api/v1/equipment/reviews/summary`（装备评价摘要）、路线收藏 `POST/DELETE /api/v1/routes/{id}/favorite`。
+- **装备比选**：S6 直接消费 `GET /api/v1/equipment?category=`（含评分聚合），无单独 `/gear/*` 端点；GAP PICKS 为前端按预算从真实目录筛选。
+- 错误格式沿用 FastAPI 默认 `{ "detail": "…" }`，未实现契约中的 `{code, message}`。
+
+以下为初稿原文，仅作设计意图参考。
+
+---
 
 - 基础约定：`BASE_URL /api/v1`，JSON 编码，时间用 ISO 8601 或 `HH:mm` 字符串（见各字段备注）
 - 鉴权：`Authorization: Bearer <token>`（登录/注册除外）

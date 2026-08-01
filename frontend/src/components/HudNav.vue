@@ -1,5 +1,7 @@
 <script setup>
 /* HUD Nav — 6 屏共用，1440×72，pad 0 40，space-between */
+import { store } from '../store'
+
 defineProps({
   active: { type: String, default: 'plan' } // plan | lib | gear | community | none
 })
@@ -31,8 +33,8 @@ const menus = [
     </div>
 
     <div class="right">
-      <span class="hud-chip">LV.3 HIKER</span>
-      <button class="login">登录 / 注册</button>
+      <span class="hud-chip">{{ store.session.user ? store.session.user.display_name : '未连接' }}</span>
+      <span class="login">{{ store.session.user ? '已登录' : '连接中…' }}</span>
     </div>
   </nav>
 </template>

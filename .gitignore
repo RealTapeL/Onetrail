@@ -23,3 +23,6 @@ __pycache__/
 .vscode/
 .DS_Store
 
+# Frontend dependencies
+node_modules/
+

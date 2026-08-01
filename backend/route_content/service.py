@@ -9,6 +9,13 @@ from route_content.models import HikingRoute, RouteReview, RouteTag
 from route_content.schemas import ImpressionStat, RouteCreate, RouteDetail, RouteSummary
 
 
+DIFFICULTY_LEVELS = {"easy": 1, "moderate": 2, "hard": 4, "expert": 5}
+
+
+def difficulty_level(difficulty: str) -> int:
+    return DIFFICULTY_LEVELS.get(difficulty, 0)
+
+
 def get_route_or_404(db: Session, route_id: str) -> HikingRoute:
     route = db.get(HikingRoute, route_id)
     if route is None:
@@ -32,6 +39,25 @@ def _review_stats(db: Session, route_id: str) -> tuple[float | None, int, list[I
     return average, len(reviews), stats
 
 
+def _average_rating(db: Session, route_id: str) -> float | None:
+    ratings = db.scalars(select(RouteReview.rating).where(RouteReview.route_id == route_id)).all()
+    return round(sum(ratings) / len(ratings), 1) if ratings else None
+
+
+def serialize_route_summary(db: Session, route: HikingRoute) -> RouteSummary:
+    return RouteSummary(
+        id=route.id,
+        title=route.title,
+        region=route.region,
+        distance_km=route.distance_km,
+        elevation_gain_m=route.elevation_gain_m,
+        estimated_duration_min=route.estimated_duration_min,
+        difficulty=route.difficulty,
+        level=difficulty_level(route.difficulty),
+        average_rating=_average_rating(db, route.id),
+    )
+
+
 def serialize_route_detail(db: Session, route: HikingRoute) -> RouteDetail:
     average_rating, review_count, impression_stats = _review_stats(db, route.id)
     return RouteDetail(
@@ -45,6 +71,7 @@ def serialize_route_detail(db: Session, route: HikingRoute) -> RouteDetail:
         elevation_gain_m=route.elevation_gain_m,
         estimated_duration_min=route.estimated_duration_min,
         difficulty=route.difficulty,
+        level=difficulty_level(route.difficulty),
         suitable_for=route.suitable_for,
         video_url=route.video_url,
         tags=route_tags(db, route.id),
@@ -69,8 +96,18 @@ def create_route(db: Session, owner_id: str, payload: RouteCreate) -> HikingRout
 
 
 def list_routes(
-    db: Session, query: str | None, region: str | None, difficulty: str | None, tag: str | None
-) -> list[RouteSummary]:
+    db: Session,
+    query: str | None,
+    region: str | None,
+    difficulty: str | None,
+    tag: str | None,
+    level_min: int | None,
+    level_max: int | None,
+    max_distance_km: float | None,
+    crowd: str | None,
+    page: int,
+    page_size: int,
+) -> tuple[int, list[RouteSummary]]:
     statement = select(HikingRoute).order_by(HikingRoute.created_at.desc())
     if query:
         statement = statement.where(
@@ -86,7 +123,21 @@ def list_routes(
         statement = statement.where(HikingRoute.difficulty == difficulty)
     if tag:
         statement = statement.join(RouteTag).where(RouteTag.name == tag)
-    return [RouteSummary.model_validate(route) for route in db.scalars(statement).unique().all()]
+    if max_distance_km is not None:
+        statement = statement.where(HikingRoute.distance_km <= max_distance_km)
+    if crowd:
+        statement = statement.where(HikingRoute.suitable_for.contains(crowd))
+    routes = list(db.scalars(statement).unique().all())
+    if level_min is not None or level_max is not None:
+        routes = [
+            route
+            for route in routes
+            if (level_min is None or difficulty_level(route.difficulty) >= level_min)
+            and (level_max is None or difficulty_level(route.difficulty) <= level_max)
+        ]
+    total = len(routes)
+    start = (page - 1) * page_size
+    return total, [serialize_route_summary(db, route) for route in routes[start : start + page_size]]
 
 
 def serialize_review(review: RouteReview):

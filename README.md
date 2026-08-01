@@ -44,14 +44,29 @@ Onetrail/
 │   ├── identity/            # 身份、登录、用户偏好
 │   ├── hiking_history/      # 历史徒步记录与能力画像
 │   ├── recommendation/     # 推荐引擎、高德适配器
-│   ├── route_content/       # 路线、标签、评价
-│   ├── equipment/           # 装备目录与建议
-│   ├── platform_services/   # 健康检查、集成状态
+│   ├── route_content/       # 路线、标签、评价、收藏
+│   ├── equipment/           # 装备目录、评价与建议
+│   ├── platform_services/   # 健康检查、集成状态、平台统计
 │   ├── core/                # 配置与安全能力
 │   ├── database/            # 数据库引擎与会话
 │   └── tests/               # 自动化测试
+├── frontend/                # Vue 3 + Vite 原型（6 屏已接入后端）
 └── docs/                    # 产品逻辑图
 ```
+
+## 前端启动
+
+前端是 Vue 3 + Vite 原型，6 个页面已接入后端真实数据（预设演示账号自动登录）：
+
+```bash
+# 1. 先启动后端（见上文，默认 127.0.0.1:8000）
+# 2. 启动前端开发服务器（/api 已代理到后端）
+cd frontend
+npm ci
+npm run dev
+```
+
+打开 <http://localhost:5173>。首次启动会自动注册并登录演示账号 `admin@onetrail.dev`。
 
 ## 本地启动
 

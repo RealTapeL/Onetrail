@@ -1,114 +1,170 @@
 <script setup>
+import { computed, onMounted, ref } from 'vue'
 import HudNav from './HudNav.vue'
+import { api } from '../api'
+import { store } from '../store'
+
 const emit = defineEmits(['nav'])
 
-const stats = [
-  { label: '距离 · DIST',  value: '9.5KM' },
-  { label: '爬升 · ELEV',  value: '320M' },
-  { label: '耗时 · TIME',  value: '4H' },
-  { label: '难度 · LEVEL', value: 'Lv.2' }
-]
-const terrains = [
-  { label: '垭口', warn: false },
-  { label: '溪谷', warn: false },
-  { label: '碎石坡', warn: false },
-  { label: '涉水 ×2 处', warn: true },
-  { label: '陡坡 ×1 段', warn: true }
-]
-const votes = [
-  { label: '出片',     pct: 86, lime: true },
-  { label: '自然体验', pct: 92, lime: true },
-  { label: '故事性',   pct: 64, lime: false },
-  { label: '体能挑战', pct: 41, lime: false }
-]
-const reviews = [
-  { meta: '阿绿 · 评分 5/5 · 上周走过',   text: '溪水清澈，竹林段特别出片，带爸妈走也完全没问题。' },
-  { meta: '山雾散人 · 评分 4/5 · 3 月走过', text: '雨后涉水段水有点深，早点出发人少体验更好。' }
-]
+const route = ref(null)
+const reviews = ref([])
+const loadError = ref('')
+const favored = ref(false)
+
+onMounted(async () => {
+  if (!store.selectedRouteId) return
+  try {
+    const [detail, reviewList] = await Promise.all([
+      api(`/routes/${store.selectedRouteId}`, { auth: false }),
+      api(`/routes/${store.selectedRouteId}/reviews`, { auth: false })
+    ])
+    route.value = detail
+    reviews.value = reviewList
+  } catch (err) {
+    loadError.value = err.message || '路线加载失败'
+  }
+})
+
+const stats = computed(() => {
+  if (!route.value) return []
+  return [
+    { label: '距离 · DIST', value: `${route.value.distance_km}KM` },
+    { label: '爬升 · ELEV', value: `${route.value.elevation_gain_m}M` },
+    { label: '耗时 · TIME', value: `${Math.round(route.value.estimated_duration_min / 60)}H` },
+    { label: '难度 · LEVEL', value: `Lv.${route.value.level}` }
+  ]
+})
+const terrains = computed(() =>
+  (route.value?.tags || []).map((t) => ({ label: t.name, warn: t.category === 'safety' }))
+)
+const safetyTip = computed(() => {
+  const note = (route.value?.tags || []).find((t) => t.safety_note)?.safety_note
+  return note ? `安全提示：${note}` : '安全提示：暂无标签化安全提示，请出发前确认现场状况。'
+})
+const votes = computed(() => {
+  const total = route.value?.review_count || 0
+  return (route.value?.impression_stats || []).map((s) => {
+    const pct = total ? Math.min(100, Math.round((s.count / total) * 100)) : 0
+    return { label: s.tag, pct, lime: pct >= 60 }
+  })
+})
+const verdict = computed(() => {
+  const avg = route.value?.average_rating
+  const count = route.value?.review_count || 0
+  if (!count) return { text: '暂无评价', sub: '等待第一条真实评价' }
+  return {
+    text: avg >= 4 ? '值得去' : '再想想',
+    sub: `基于 ${count} 条真实评价 · 平均 ${avg} 分`
+  }
+})
+
+async function toggleFavorite() {
+  if (!store.selectedRouteId) return
+  try {
+    if (favored.value) {
+      await api(`/routes/${store.selectedRouteId}/favorite`, { method: 'DELETE' })
+      favored.value = false
+    } else {
+      await api(`/routes/${store.selectedRouteId}/favorite`, { method: 'POST' })
+      favored.value = true
+    }
+  } catch { /* 未登录或网络错误时保持原状态 */ }
+}
 </script>
 
 <template>
   <section class="screen">
     <HudNav active="lib" @nav="emit('nav', $event)" />
 
-    <header class="screen-head" style="height:120px;">
-      <div>
-        <div class="sh-title-cn">「03」九溪十八涧 · 环线</div>
-        <div class="sh-title-en">ROUTE DETAIL — TRUSTED ARCHIVE</div>
-      </div>
-      <span class="sh-chip lime">社区共识：值得去 · 1,284 票</span>
-    </header>
+    <div v-if="!store.selectedRouteId" class="empty panel-d">
+      还没有选中的路线，请先到路线库或推荐页选择一条路线。
+      <button class="empty-btn" @click="emit('nav', 's5')">去路线库 →</button>
+    </div>
+    <div v-else-if="loadError" class="empty panel-d">{{ loadError }}</div>
 
-    <div class="main-row">
-      <!-- 左列 904 -->
-      <div class="left-col">
-        <div class="preview">
-          <img class="preview-img" src="/images/2_206.webp" alt="九溪十八涧" />
-          <span class="video-chip">视频预览 · 00:42</span>
-          <span class="play-btn">
-            <svg viewBox="0 0 16 20" width="15" height="20"><polygon points="0,0 16,10 0,20" fill="#0B0B0B" /></svg>
-          </span>
+    <template v-else-if="route">
+      <header class="screen-head" style="height:120px;">
+        <div>
+          <div class="sh-title-cn">「03」{{ route.title }}</div>
+          <div class="sh-title-en">ROUTE DETAIL — TRUSTED ARCHIVE</div>
         </div>
+        <span class="sh-chip lime">社区共识：{{ verdict.text }} · {{ route.review_count }} 条评价</span>
+      </header>
 
-        <div class="stats-bar panel-d">
-          <div v-for="s in stats" :key="s.label" class="stat">
-            <div class="stat-label">{{ s.label }}</div>
-            <div class="stat-value">{{ s.value }}</div>
+      <div class="main-row">
+        <!-- 左列 904 -->
+        <div class="left-col">
+          <div class="preview">
+            <img class="preview-img" src="/images/2_206.webp" :alt="route.title" />
+            <span v-if="route.video_url" class="video-chip">视频预览</span>
+            <span v-if="route.video_url" class="play-btn">
+              <svg viewBox="0 0 16 20" width="15" height="20"><polygon points="0,0 16,10 0,20" fill="#0B0B0B" /></svg>
+            </span>
           </div>
-        </div>
 
-        <div class="terrain panel-d">
-          <div class="ptitle">地形与安全标签 · TERRAIN &amp; SAFETY</div>
-          <div class="t-chips">
-            <span v-for="t in terrains" :key="t.label" class="t-chip" :class="{ warn: t.warn }">{{ t.label }}</span>
-          </div>
-          <div class="t-tip">安全提示：涉水路段雨后水位上涨，建议上午通过；碎石坡路段注意防滑。</div>
-        </div>
-
-        <div class="reviews panel-d">
-          <div class="ptitle">徒步者评价 · REVIEWS</div>
-          <template v-for="r in reviews" :key="r.meta">
-            <div class="rv-meta">{{ r.meta }}</div>
-            <div class="rv-text">{{ r.text }}</div>
-          </template>
-        </div>
-      </div>
-
-      <!-- 右栏 416 白卡 -->
-      <aside class="rail">
-        <div class="vote-g">
-          <div class="rail-title">路线气质投票 · VIBE VOTE</div>
-          <div v-for="v in votes" :key="v.label" class="vote">
-            <div class="vote-label">{{ v.label }} · {{ v.pct }}%</div>
-            <div class="vote-track">
-              <div class="vote-fill" :class="{ lime: v.lime }" :style="{ width: v.pct + '%' }" />
+          <div class="stats-bar panel-d">
+            <div v-for="s in stats" :key="s.label" class="stat">
+              <div class="stat-label">{{ s.label }}</div>
+              <div class="stat-value">{{ s.value }}</div>
             </div>
           </div>
+
+          <div class="terrain panel-d">
+            <div class="ptitle">地形与安全标签 · TERRAIN &amp; SAFETY</div>
+            <div class="t-chips">
+              <span v-for="t in terrains" :key="t.label" class="t-chip" :class="{ warn: t.warn }">{{ t.label }}</span>
+              <span v-if="!terrains.length" class="t-chip">暂无标签</span>
+            </div>
+            <div class="t-tip">{{ safetyTip }}</div>
+          </div>
+
+          <div class="reviews panel-d">
+            <div class="ptitle">徒步者评价 · REVIEWS</div>
+            <template v-for="r in reviews" :key="r.id">
+              <div class="rv-meta">评分 {{ r.rating }}/5</div>
+              <div class="rv-text">{{ r.content || '（未填写评价内容）' }}</div>
+            </template>
+            <div v-if="!reviews.length" class="rv-text">暂无评价，走过这条路线后欢迎留下第一条反馈。</div>
+          </div>
         </div>
 
-        <div class="who-g">
-          <div class="who-label">适合人群 · WHO</div>
-          <div class="who-text">新手友好 · 亲子出行 · 摄影爱好者</div>
-        </div>
+        <!-- 右栏 416 白卡 -->
+        <aside class="rail">
+          <div class="vote-g">
+            <div class="rail-title">路线气质投票 · VIBE VOTE</div>
+            <div v-for="v in votes" :key="v.label" class="vote">
+              <div class="vote-label">{{ v.label }} · {{ v.pct }}%</div>
+              <div class="vote-track">
+                <div class="vote-fill" :class="{ lime: v.lime }" :style="{ width: v.pct + '%' }" />
+              </div>
+            </div>
+            <div v-if="!votes.length" class="who-text">暂无投票数据</div>
+          </div>
 
-        <div class="verdict">
-          <div class="v-q">值不值得去？</div>
-          <div class="v-a">值得去</div>
-          <div class="v-sub">基于 1,284 票社区共识投票</div>
-        </div>
+          <div class="who-g">
+            <div class="who-label">适合人群 · WHO</div>
+            <div class="who-text">{{ route.suitable_for || '暂无标注' }}</div>
+          </div>
 
-        <div class="rail-cta">
-          <button class="cta-main" @click="emit('nav', 's4')">加入出行计划</button>
-          <button class="cta-sub">收藏</button>
-        </div>
-      </aside>
-    </div>
+          <div class="verdict">
+            <div class="v-q">值不值得去？</div>
+            <div class="v-a">{{ verdict.text }}</div>
+            <div class="v-sub">{{ verdict.sub }}</div>
+          </div>
+
+          <div class="rail-cta">
+            <button class="cta-main" @click="emit('nav', 's4')">加入出行计划</button>
+            <button class="cta-sub" @click="toggleFavorite">{{ favored ? '已收藏' : '收藏' }}</button>
+          </div>
+        </aside>
+      </div>
+    </template>
   </section>
 </template>
 
 <style scoped>
 .main-row {
-  height: 768px;
+  min-height: 768px;
   padding: 0 48px;
   display: flex;
   gap: 24px;
@@ -157,7 +213,7 @@ const reviews = [
 /* 右栏白卡：2px 黑边 + 6px 荧光绿实体投影 */
 .rail {
   width: 416px;
-  height: 728px;
+  min-height: 728px;
   background: #FFFFFF;
   border: 2px solid var(--ink);
   box-shadow: var(--sh-lime-6);
@@ -165,6 +221,7 @@ const reviews = [
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: 20px;
 }
 .rail-title { font-size: 16px; font-weight: 900; color: var(--ink); }
 .vote-g { display: flex; flex-direction: column; gap: 10px; }
@@ -201,4 +258,15 @@ const reviews = [
   border: 2px solid var(--ink);
   font-size: 14px; font-weight: 700; color: var(--ink);
 }
+
+.empty {
+  margin: 24px 48px;
+  padding: 40px;
+  font-size: 14px;
+  color: var(--t1);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.empty-btn { background: var(--lime); color: var(--ink); font-weight: 700; padding: 8px 16px; }
 </style>

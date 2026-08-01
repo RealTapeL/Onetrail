@@ -61,7 +61,7 @@ def test_route_search_matches_description() -> None:
         _create_route(client, headers, title="普通标题", description="沿途有罕见的银叶树林")
         response = client.get("/api/v1/routes", params={"query": "银叶树"})
     assert response.status_code == 200
-    assert len(response.json()) >= 1
+    assert len(response.json()["items"]) >= 1
 
 
 def test_route_favorite_lifecycle() -> None:
@@ -82,7 +82,57 @@ def test_route_favorite_lifecycle() -> None:
         assert client.post(f"/api/v1/routes/{route_id}/favorite").status_code == 401
 
 
-def test_equipment_review_aggregation() -> None:
+def test_brand_stats_reflect_real_counts() -> None:
+    with TestClient(app) as client:
+        headers = _auth_headers(client, "stats@example.com")
+        _create_route(client, headers)
+        stats = client.get("/api/v1/meta/brand-stats").json()
+    assert stats == {"routeCount": 1, "hikerCount": 1, "cityCount": 1}
+
+
+def test_route_list_pagination_and_level_filter() -> None:
+    with TestClient(app) as client:
+        headers = _auth_headers(client, "pager@example.com")
+        easy_id = _create_route(client, headers, title="轻松线", difficulty="easy", distance_km=5.0)
+        _create_route(client, headers, title="硬核线", difficulty="hard", distance_km=20.0, elevation_gain_m=900)
+
+        page = client.get("/api/v1/routes", params={"page": 1, "page_size": 1}).json()
+        assert page["total"] == 2
+        assert len(page["items"]) == 1
+
+        filtered = client.get("/api/v1/routes", params={"level_max": 2}).json()
+        assert filtered["total"] == 1
+        assert filtered["items"][0]["id"] == easy_id
+        assert filtered["items"][0]["level"] == 1
+
+        by_distance = client.get("/api/v1/routes", params={"max_distance_km": 10}).json()
+        assert by_distance["total"] == 1
+
+
+def test_equipment_reviews_summary() -> None:
+    with TestClient(app) as client:
+        headers = _auth_headers(client, "summary@example.com")
+        equipment_id = client.post(
+            "/api/v1/equipment",
+            headers=headers,
+            json={"name": "摘要测试背包", "category": "backpack", "specifications": {}, "suitable_scenarios": []},
+        ).json()["id"]
+        client.post(f"/api/v1/equipment/{equipment_id}/reviews", headers=headers, json={"rating": 4})
+        client.post(
+            f"/api/v1/equipment/{equipment_id}/reviews",
+            headers=headers,
+            json={"rating": 5, "content": "背着走了两天很舒服"},
+        )
+        summary = client.get("/api/v1/equipment/reviews/summary").json()
+    assert summary["total_count"] == 2
+    assert summary["sample"]["quote"] == "背着走了两天很舒服"
+    assert summary["sample"]["equipment_name"] == "摘要测试背包"
+
+
+def test_weather_tip_requires_configured_provider() -> None:
+    with TestClient(app) as client:
+        response = client.get("/api/v1/meta/weather-tip", params={"latitude": 31.2, "longitude": 121.5})
+    assert response.status_code == 424
     with TestClient(app) as client:
         headers = _auth_headers(client, "gear@example.com")
         created = client.post(

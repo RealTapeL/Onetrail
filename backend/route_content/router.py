@@ -14,6 +14,7 @@ from route_content.schemas import (
     ReviewResponse,
     RouteCreate,
     RouteDetail,
+    RouteListPage,
     RouteSummary,
 )
 from route_content.service import (
@@ -22,20 +23,30 @@ from route_content.service import (
     list_routes,
     serialize_review,
     serialize_route_detail,
+    serialize_route_summary,
 )
 
 router = APIRouter(prefix="/routes", tags=["路线内容与社区"])
 
 
-@router.get("", response_model=list[RouteSummary])
+@router.get("", response_model=RouteListPage)
 def get_routes(
     query: str | None = None,
     region: str | None = None,
     difficulty: str | None = None,
     tag: str | None = None,
+    level_min: int | None = None,
+    level_max: int | None = None,
+    max_distance_km: float | None = None,
+    crowd: str | None = None,
+    page: int = 1,
+    page_size: int = 12,
     db: Session = Depends(get_db),
-) -> list[RouteSummary]:
-    return list_routes(db, query, region, difficulty, tag)
+) -> RouteListPage:
+    total, items = list_routes(
+        db, query, region, difficulty, tag, level_min, level_max, max_distance_km, crowd, page, page_size
+    )
+    return RouteListPage(total=total, page=page, items=items)
 
 
 @router.post("", response_model=RouteDetail, status_code=status.HTTP_201_CREATED)
@@ -58,7 +69,7 @@ def get_my_favorites(
         .where(RouteFavorite.user_id == current_user.id)
         .order_by(RouteFavorite.created_at.desc())
     )
-    return [RouteSummary.model_validate(route) for route in db.scalars(statement).all()]
+    return [serialize_route_summary(db, route) for route in db.scalars(statement).all()]
 
 
 @router.get("/{route_id}", response_model=RouteDetail)

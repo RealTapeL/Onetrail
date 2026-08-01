@@ -12,8 +12,9 @@ from hiking_history import models as hiking_history_models  # noqa: F401 - regis
 from hiking_history.router import router as hiking_history_router
 from identity import models as identity_models  # noqa: F401 - registers metadata
 from identity.router import profile_router, router as identity_router
+from platform_services.router import meta_router as platform_meta_router
 from platform_services.router import router as platform_router
-from recommendation.router import integration_router, router as recommendation_router
+from recommendation.router import integration_router, meta_router, router as recommendation_router
 from route_content import models as route_models  # noqa: F401 - registers metadata
 from route_content.router import router as route_router
 
@@ -43,3 +44,5 @@ app.include_router(recommendation_router, prefix="/api/v1")
 app.include_router(equipment_router, prefix="/api/v1")
 app.include_router(hiking_history_router, prefix="/api/v1")
 app.include_router(integration_router, prefix="/api/v1")
+app.include_router(meta_router, prefix="/api/v1")
+app.include_router(platform_meta_router, prefix="/api/v1")

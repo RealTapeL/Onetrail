@@ -39,6 +39,14 @@ class RouteSummary(BaseModel):
     elevation_gain_m: int
     estimated_duration_min: int
     difficulty: str
+    level: int
+    average_rating: float | None
+
+
+class RouteListPage(BaseModel):
+    total: int
+    page: int
+    items: list[RouteSummary]
 
 
 class ImpressionStat(BaseModel):

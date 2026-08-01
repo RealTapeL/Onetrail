@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -16,6 +18,7 @@ from recommendation.service import recommend
 
 router = APIRouter(prefix="/recommendations", tags=["智能线路推荐"])
 integration_router = APIRouter(prefix="/integrations", tags=["基础能力"])
+meta_router = APIRouter(prefix="/meta", tags=["基础能力"])
 
 
 @router.post("/plan", response_model=RecommendationResponse)
@@ -40,3 +43,20 @@ def get_integration_status() -> IntegrationStatus:
         map=map_ready,
         message="未配置的外部能力不会生成或返回虚构数据。",
     )
+
+
+@meta_router.get("/weather-tip")
+def get_weather_tip(latitude: float, longitude: float) -> dict[str, str]:
+    try:
+        map_context = get_map_provider().get_context(latitude, longitude, date.today())
+        forecast = get_weather_provider().get_forecast(map_context.adcode, date.today())
+    except ProviderNotConfigured as exc:
+        raise HTTPException(status_code=status.HTTP_424_FAILED_DEPENDENCY, detail=str(exc)) from exc
+    except ProviderRequestError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+    parts = [map_context.region_name, f"今日{forecast.weather}"]
+    if forecast.temperature_min_c is not None and forecast.temperature_max_c is not None:
+        parts.append(f"{forecast.temperature_min_c:g}–{forecast.temperature_max_c:g}°C")
+    if forecast.wind_power:
+        parts.append(f"风力{forecast.wind_power}级")
+    return {"text": " · ".join(parts)}

@@ -12,6 +12,8 @@ from equipment.schemas import (
     EquipmentResponse,
     EquipmentReviewCreate,
     EquipmentReviewResponse,
+    EquipmentReviewSample,
+    EquipmentReviewsSummary,
 )
 from identity.models import User
 
@@ -89,6 +91,26 @@ def create_equipment(
     db.commit()
     db.refresh(item)
     return serialize_equipment(db, item)
+
+
+@router.get("/reviews/summary", response_model=EquipmentReviewsSummary)
+def get_equipment_reviews_summary(db: Session = Depends(get_db)) -> EquipmentReviewsSummary:
+    total_count = len(db.scalars(select(EquipmentReview.id)).all())
+    latest = db.scalar(
+        select(EquipmentReview)
+        .where(EquipmentReview.content.is_not(None))
+        .order_by(EquipmentReview.created_at.desc())
+        .limit(1)
+    )
+    sample = None
+    if latest is not None:
+        item = db.get(Equipment, latest.equipment_id)
+        sample = EquipmentReviewSample(
+            quote=latest.content or "",
+            equipment_id=latest.equipment_id,
+            equipment_name=item.name if item else "",
+        )
+    return EquipmentReviewsSummary(total_count=total_count, sample=sample)
 
 
 @router.get("/{equipment_id}", response_model=EquipmentResponse)

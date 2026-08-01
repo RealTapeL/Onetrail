@@ -1,16 +1,70 @@
 <script setup>
+import { onMounted, ref } from 'vue'
 import HudNav from './HudNav.vue'
+import { api } from '../api'
+import { selectRoute } from '../store'
+
 const emit = defineEmits(['nav'])
 
+const COVERS = ['/images/2_388.webp', '/images/2_392.webp', '/images/2_396.webp', '/images/2_400.webp', '/images/2_404.webp', '/images/2_408.webp']
 const scenes = ['瀑布', '古道', '竹林', '云海', '星空']
-const cards = [
-  { img: '/images/2_388.webp', name: '九溪十八涧 · 环线', meta: '9.5KM · 爬升 320M · Lv.2 · 评分 4.8' },
-  { img: '/images/2_392.webp', name: '徽杭古道 · 精华段', meta: '12.5KM · 爬升 480M · Lv.3 · 评分 4.7' },
-  { img: '/images/2_396.webp', name: '大明山 · 云海线',   meta: '8.2KM · 爬升 650M · Lv.4 · 评分 4.6' },
-  { img: '/images/2_400.webp', name: '鸬鸟山温泉线',     meta: '6.0KM · 爬升 180M · Lv.1 · 评分 4.5' },
-  { img: '/images/2_404.webp', name: '径山古道',         meta: '7.8KM · 爬升 260M · Lv.2 · 评分 4.7' },
-  { img: '/images/2_408.webp', name: '清凉峰 · 星空线',   meta: '14.0KM · 爬升 920M · Lv.5 · 评分 4.9' }
-]
+
+const keyword = ref('')
+const scene = ref('')
+const maxDistance = ref(null)
+const cards = ref([])
+const total = ref(0)
+const weatherTip = ref('')
+
+async function load() {
+  const params = new URLSearchParams({ page: '1', page_size: '12' })
+  if (keyword.value) params.set('query', keyword.value)
+  if (scene.value) params.set('tag', scene.value)
+  if (maxDistance.value) params.set('max_distance_km', String(maxDistance.value))
+  try {
+    const data = await api(`/routes?${params}`, { auth: false })
+    total.value = data.total
+    cards.value = data.items.map((r, i) => ({
+      id: r.id,
+      img: COVERS[i % COVERS.length],
+      name: r.title,
+      meta: `${r.distance_km}KM · 爬升 ${r.elevation_gain_m}M · Lv.${r.level} · ${r.average_rating != null ? `评分 ${r.average_rating}` : '暂无评分'}`
+    }))
+  } catch {
+    cards.value = []
+    total.value = 0
+  }
+}
+
+function toggleScene(s) {
+  scene.value = scene.value === s ? '' : s
+  load()
+}
+
+function toggleDistance() {
+  maxDistance.value = maxDistance.value ? null : 15
+  load()
+}
+
+function open(id) {
+  selectRoute(id)
+  emit('nav', 's3')
+}
+
+onMounted(() => {
+  load()
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const data = await api(
+          `/meta/weather-tip?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}`,
+          { auth: false }
+        )
+        weatherTip.value = data.text
+      } catch { /* 未配置天气服务时隐藏胶囊 */ }
+    })
+  }
+})
 </script>
 
 <template>
@@ -27,34 +81,38 @@ const cards = [
     <!-- 搜索 1440×68 -->
     <div class="search-row">
       <div class="search-input">
-        <span class="ph">搜索路线、山峰、地名…</span>
+        <input v-model="keyword" class="search-real" placeholder="搜索路线、山峰、地名…" @keyup.enter="load" />
       </div>
-      <button class="search-btn" aria-label="搜索">
+      <button class="search-btn" aria-label="搜索" @click="load">
         <svg viewBox="0 0 24 24" width="24" height="24">
           <circle cx="10" cy="10" r="6" fill="none" stroke="#0B0B0B" stroke-width="3" />
           <line x1="15" y1="15" x2="21" y2="21" stroke="#0B0B0B" stroke-width="3" />
         </svg>
       </button>
-      <span class="weather-chip">本周晴好 · 适合溪谷竹林线</span>
+      <span v-if="weatherTip" class="weather-chip">{{ weatherTip }}</span>
     </div>
 
     <!-- 筛选 1440×84 -->
     <div class="filter-sec">
       <div class="f-row1">
         <span class="f-label">景观 SCENE</span>
-        <span v-for="s in scenes" :key="s" class="f-chip" :class="{ on: s === '竹林' }">{{ s }}</span>
+        <span v-for="s in scenes" :key="s" class="f-chip" :class="{ on: s === scene }" @click="toggleScene(s)">{{ s }}</span>
       </div>
-      <div class="f-row2">难度 Lv.1 – Lv.5 · 距离 ≤ 15KM · 新手 / 亲子 / 硬核 · 更多筛选 →</div>
+      <div class="f-row2">
+        距离 <span class="f-chip inline" :class="{ on: maxDistance === 15 }" @click="toggleDistance">≤ 15KM</span>
+        · 共 {{ total }} 条路线
+      </div>
     </div>
 
     <!-- 卡片区 1440×546 -->
-    <div class="grid">
-      <article v-for="c in cards" :key="c.name" class="lib-card panel-d" @click="emit('nav', 's3')">
+    <div v-if="cards.length" class="grid">
+      <article v-for="c in cards" :key="c.id" class="lib-card panel-d" @click="open(c.id)">
         <img class="lc-img" :src="c.img" :alt="c.name" />
         <div class="lc-name">{{ c.name }}</div>
         <div class="lc-meta">{{ c.meta }}</div>
       </article>
     </div>
+    <div v-else class="empty panel-d">暂无符合条件的路线，可先通过 API 创建路线内容。</div>
   </section>
 </template>
 
@@ -76,6 +134,7 @@ const cards = [
   align-items: center;
   padding: 0 16px;
 }
+.search-real { width: 100%; font-size: 14px; color: #0B0B0B; border: none; outline: none; }
 .ph { font-size: 14px; color: #9A9A9A; }
 .search-btn {
   width: 48px; height: 48px; flex: none;
@@ -107,12 +166,14 @@ const cards = [
   color: var(--t1);
   font-size: 12px; font-weight: 500;
   padding: 7px 12px;
+  cursor: pointer;
 }
+.f-chip.inline { padding: 2px 8px; }
 .f-chip.on { background: var(--lime); border-color: var(--lime); color: var(--ink); font-weight: 700; }
 .f-row2 { font-size: 12px; color: var(--t2); }
 
 .grid {
-  height: 546px;
+  min-height: 546px;
   padding: 20px 48px 0;
   display: grid;
   grid-template-columns: repeat(3, 432px);
@@ -131,4 +192,11 @@ const cards = [
 .lc-img { width: 400px; height: 150px; object-fit: cover; display: block; }
 .lc-name { font-size: 15px; font-weight: 700; color: #FFFFFF; }
 .lc-meta { font-size: 12px; color: var(--t2); }
+
+.empty {
+  margin: 24px 48px;
+  padding: 40px;
+  font-size: 14px;
+  color: var(--t1);
+}
 </style>
