@@ -40,7 +40,7 @@ const toggleFavorite = async () => {
     <div v-else-if="!routeDetail" class="empty panel-d">加载中…</div>
 
     <template v-else>
-      <header class="screen-head" style="height:120px;">
+      <header class="screen-head">
         <div>
           <div class="sh-title-cn">「03」{{ routeDetail.name }}</div>
           <div class="sh-title-en">ROUTE DETAIL — TRUSTED ARCHIVE</div>

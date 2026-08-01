@@ -53,7 +53,7 @@ onMounted(() => {
   <section class="screen">
     <HudNav />
 
-    <header class="screen-head" style="height:116px;">
+    <header class="screen-head">
       <div>
         <div class="sh-title-cn">「05」路线库 · 搜索发现</div>
         <div class="sh-title-en">ROUTE LIBRARY — SEARCH &amp; DISCOVER</div>

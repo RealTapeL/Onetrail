@@ -34,7 +34,7 @@ onMounted(async () => {
   <section class="screen">
     <HudNav />
 
-    <header class="screen-head" style="height:116px;">
+    <header class="screen-head">
       <div>
         <div class="sh-title-cn">「06」装备比选</div>
         <div class="sh-title-en">GEAR COMPARE — EXTENSION MODULE</div>
@@ -95,9 +95,9 @@ onMounted(async () => {
 .tab { background: var(--panel); color: var(--t1); font-size: 13px; font-weight: 500; padding: 11px 16px; }
 .tab.on { background: var(--lime); color: var(--ink); font-weight: 700; }
 
-.compare { min-height: 420px; padding: 0 48px; display: flex; gap: 16px; }
+.compare { min-height: 416px; padding: 0 var(--content-px); display: flex; gap: var(--card-gap); }
 .gc {
-  width: 437px;
+  width: 432px;
   background: #FFFFFF;
   border: 2px solid var(--ink);
   box-shadow: var(--sh-white-4);
@@ -107,7 +107,7 @@ onMounted(async () => {
   gap: 12px;
 }
 .gc.best { box-shadow: var(--sh-lime-4); }
-.gc-img { width: 397px; height: 160px; object-fit: cover; display: block; background: #F0F0F0; }
+.gc-img { width: 100%; height: 160px; object-fit: cover; display: block; background: #F0F0F0; }
 .gc-badge { align-self: flex-start; background: var(--lime); color: var(--ink); font-size: 11px; font-weight: 700; padding: 6px 10px; }
 .gc-name { font-size: 16px; font-weight: 700; color: var(--ink); }
 .gc-specs { font-size: 13px; color: var(--ink2); line-height: 1.9; }

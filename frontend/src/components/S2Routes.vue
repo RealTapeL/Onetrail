@@ -13,7 +13,7 @@ const recommendation = computed(() => state.recommendation)
   <section class="screen">
     <HudNav />
 
-    <header class="screen-head" style="height:132px;">
+    <header class="screen-head">
       <div>
         <div class="sh-title-cn">「02」智能线路推荐</div>
         <div class="sh-title-en">TOP 3 ROUTES FOR YOU</div>

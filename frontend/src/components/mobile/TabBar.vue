@@ -27,6 +27,7 @@ const tabs = [
 </script>
 
 <template>
+  <div class="tab-spacer" />
   <nav class="tab-bar">
     <router-link v-for="t in tabs" :key="t.key" class="tab" :class="{ on: active === t.key }" :to="t.to">
       <svg viewBox="0 0 20 20" class="ti" v-html="t.icon" />
@@ -36,15 +37,20 @@ const tabs = [
 </template>
 
 <style scoped>
+/* 占位块：在文档流中撑起固定导航的高度，防止内容被遮挡 */
+.tab-spacer { height: 56px; flex: none; }
 .tab-bar {
-  position: sticky;
+  position: fixed;
   bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
   z-index: 20;
   display: flex;
   height: 56px;
   background: var(--bg);
   border-top: 1px solid var(--line);
-  flex: none;
 }
 .tab {
   width: 25%;

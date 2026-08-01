@@ -87,6 +87,7 @@ const toggleFavorite = async () => {
       </section>
     </div>
 
+    <div class="cta-spacer" />
     <div class="cta-bar">
       <button class="cta-main" @click="$router.push('/trip/current')">加入出行计划</button>
       <button class="cta-sub" :class="{ on: favored }" @click="toggleFavorite">{{ favored ? '已收藏' : '收藏' }}</button>
@@ -130,8 +131,15 @@ const toggleFavorite = async () => {
 .vd-s { font-size: 9px; color: var(--t2); }
 .r-meta { font-size: 10px; font-weight: 700; color: var(--lime); }
 .who { border-top: 1px dashed var(--line); padding-top: 8px; }
+.cta-spacer { height: 64px; flex: none; }
 .cta-bar {
-  position: sticky; bottom: 0; z-index: 20;
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  z-index: 20;
   display: flex; gap: 10px; padding: 10px 16px;
   background: var(--bg); border-top: 1px solid var(--line);
 }

@@ -37,8 +37,9 @@ const menus = [
     </div>
 
     <div class="right">
-      <span class="hud-chip">{{ session.user ? session.user.display_name : '未连接' }}</span>
-      <span class="login">{{ session.user ? '已登录' : '连接中…' }}</span>
+      <span class="user">
+        <i class="dot" :class="{ off: !session.user }" />{{ session.user ? session.user.display_name : '连接中…' }}
+      </span>
     </div>
   </nav>
 </template>
@@ -66,14 +67,18 @@ const menus = [
 .mi:hover { color: var(--t1); }
 .mi.on:hover { color: var(--lime); }
 
-.right { display: flex; align-items: center; gap: 16px; }
-.hud-chip {
+.right { display: flex; align-items: center; }
+.user {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: var(--panel);
   border: 1px solid var(--line);
-  padding: 6px 12px;
+  padding: 8px 14px;
   font-family: var(--silk);
   font-size: 11px;
   color: var(--lime);
 }
-.login { background: var(--lime); padding: 10px 20px; font-size: 13px; font-weight: 700; color: var(--ink); }
+.dot { width: 8px; height: 8px; background: var(--lime); flex: none; }
+.dot.off { background: var(--t4); }
 </style>

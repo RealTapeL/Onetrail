@@ -32,6 +32,11 @@
   --sh-white-4: 4px 4px 0 #FFFFFF;
   --sh-ink-3: 3px 3px 0 #0A0A0A;
   --sh-ink-4: 4px 4px 0 #0A0A0A;
+  /* 全局版心骨架（六屏统一） */
+  --nav-h: 72px;          /* 顶部导航高 */
+  --head-h: 120px;        /* 屏头高 */
+  --content-px: 48px;     /* 内容左右留白 */
+  --card-gap: 24px;       /* 卡片间距 */
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -66,12 +71,13 @@ input { font-family: inherit; border: none; outline: none; background: none; }
   color: var(--white);
 }
 
-/* ============== 屏头（S2–S6 共用结构） ============== */
+/* ============== 屏头（S2–S6 共用结构：统一高度与留白） ============== */
 .screen-head {
+  height: var(--head-h);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 28px 48px 24px;
+  padding: 0 var(--content-px);
 }
 .sh-title-cn {
   font-size: 28px;
@@ -99,12 +105,13 @@ input { font-family: inherit; border: none; outline: none; background: none; }
   font-weight: 700;
 }
 
-/* ============== 移动端页面骨架 ============== */
+/* ============== 移动端页面骨架（顶栏/底 Tab 固定，内容在中间滚动） ============== */
 .m-screen {
   width: 100%;
   max-width: 480px;
   min-height: 100vh;
   margin: 0 auto;
+  padding-top: 48px;    /* 固定顶栏高度 */
   background: var(--bg);
   display: flex;
   flex-direction: column;

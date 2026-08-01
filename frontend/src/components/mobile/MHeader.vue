@@ -20,13 +20,19 @@ import { session } from '../../api/http'
 
 <style scoped>
 .m-header {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  z-index: 20;
   height: 48px;
   padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: var(--bg);
-  flex: none;
 }
 .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
 .mark { width: 20px; height: 20px; }

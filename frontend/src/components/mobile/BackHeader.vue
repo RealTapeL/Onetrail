@@ -22,13 +22,19 @@ defineProps({
 
 <style scoped>
 .back-header {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  z-index: 20;
   height: 48px;
   padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: var(--bg);
-  flex: none;
 }
 .back { display: flex; align-items: center; gap: 8px; color: var(--lime); font-size: 12px; font-weight: 500; }
 .arrow { width: 16px; height: 16px; fill: var(--lime); }

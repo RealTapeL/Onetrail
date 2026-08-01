@@ -32,7 +32,7 @@ const favoritePlan = async () => {
   <section class="screen">
     <HudNav />
 
-    <header class="screen-head" style="height:120px;">
+    <header class="screen-head">
       <div>
         <div class="sh-title-cn">「04」出行执行助手</div>
         <div class="sh-title-en">EXECUTION PLAN — HOW TO GO</div>
