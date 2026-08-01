@@ -1,7 +1,12 @@
 <script setup>
-/** M6 推荐结果（下层页，对齐设计稿 6:26） */
+/** M6 推荐结果（下层页，对齐设计稿 6:26）
+ *  数据来自真实推荐结果（M1 提交后写入共享状态）
+ */
+import { computed } from 'vue'
 import BackHeader from './BackHeader.vue'
-import { recommendation } from '../../api/mock'
+import { state } from '../../api/index'
+
+const recommendation = computed(() => state.recommendation)
 </script>
 
 <template>
@@ -10,7 +15,13 @@ import { recommendation } from '../../api/mock'
       <span class="silk">TOP 3 ROUTES FOR YOU</span>
     </BackHeader>
     <div class="m-body">
+      <div v-if="!recommendation" class="empty">
+        还没有推荐结果。请先在「规划」页提交出行需求。
+        <button class="empty-btn" @click="$router.push('/plan')">去规划 →</button>
+      </div>
+      <template v-else>
       <div class="cond">{{ recommendation.conditionSummary }}</div>
+      <div v-if="recommendation.notice" class="notice">{{ recommendation.notice }}</div>
 
       <article v-for="c in recommendation.top" :key="c.routeId" class="rc"
                @click="$router.push(`/routes/${c.routeId}`)">
@@ -28,8 +39,9 @@ import { recommendation } from '../../api/mock'
         <div class="rc-risk">{{ c.risk }}</div>
         <div class="rc-tags">{{ c.tags }}</div>
       </article>
+      <div v-if="!recommendation.top.length" class="empty">当前条件下没有匹配的已发布路线，可调整限制后重试。</div>
 
-      <section class="alt">
+      <section v-if="recommendation.alternatives.length" class="alt">
         <div class="alt-title">备选路线 · ALTERNATIVES</div>
         <div v-for="a in recommendation.alternatives" :key="a.routeId" class="alt-row"
              @click="$router.push(`/routes/${a.routeId}`)">
@@ -40,6 +52,7 @@ import { recommendation } from '../../api/mock'
           </div>
         </div>
       </section>
+      </template>
     </div>
   </div>
 </template>
@@ -74,4 +87,7 @@ import { recommendation } from '../../api/mock'
 .alt-thumb { width: 36px; height: 36px; object-fit: cover; flex: none; }
 .alt-name { font-size: 11px; font-weight: 700; color: var(--t1); }
 .alt-meta { font-size: 9px; color: var(--t2); margin-top: 2px; }
+.notice { font-size: 10px; font-weight: 500; color: var(--amber); }
+.empty { font-size: 11px; color: var(--t2); line-height: 1.8; display: flex; flex-direction: column; gap: 10px; }
+.empty-btn { align-self: flex-start; font-size: 11px; font-weight: 700; color: var(--lime); padding: 0; }
 </style>

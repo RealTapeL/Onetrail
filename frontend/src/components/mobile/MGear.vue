@@ -1,22 +1,48 @@
 <script setup>
-/** M4 装备 · 装备比选（移动端 Tab 4，对齐设计稿 6:24） */
+/** M4 装备 · 装备比选（移动端 Tab 4，对齐设计稿 6:24）
+ *  数据来自真实装备目录与评价聚合
+ */
+import { onMounted, ref, watch } from 'vue'
 import MHeader from './MHeader.vue'
 import TabBar from './TabBar.vue'
-import { gearCompare, gapPicks, gearReviews } from '../../api/mock'
+import { fetchGapPicks, fetchGearCompare, fetchGearReviews, GEAR_CATEGORIES, state } from '../../api/index'
+
+const activeCategory = ref('footwear')
+const items = ref([])
+const gapPicks = ref([])
+const gearReviews = ref({ totalCount: 0, quote: '' })
+
+const load = async () => {
+  try {
+    items.value = await fetchGearCompare(activeCategory.value)
+    gapPicks.value = await fetchGapPicks(activeCategory.value, state.budgetCny ?? 500)
+  } catch {
+    items.value = []
+    gapPicks.value = []
+  }
+}
+
+watch(activeCategory, load)
+onMounted(async () => {
+  load()
+  try {
+    gearReviews.value = await fetchGearReviews()
+  } catch { /* 保留默认 */ }
+})
 </script>
 
 <template>
   <div class="m-screen">
     <MHeader />
     <div class="m-body">
-      <div class="link-chip">{{ gearCompare.contextSummary }}</div>
+      <div class="link-chip">按装备目录真实数据生成建议</div>
 
       <div class="tabs">
-        <button v-for="t in gearCompare.categories" :key="t" class="tab"
-                :class="{ on: t === gearCompare.activeCategory }">{{ t }}</button>
+        <button v-for="t in GEAR_CATEGORIES" :key="t.value" class="tab"
+                :class="{ on: t.value === activeCategory }" @click="activeCategory = t.value">{{ t.label }}</button>
       </div>
 
-      <article v-for="g in gearCompare.items" :key="g.id" class="gc" :class="{ best: g.best }">
+      <article v-for="g in items" :key="g.id" class="gc" :class="{ best: g.best }">
         <img class="gc-img" :src="g.img" :alt="g.name" />
         <span v-if="g.best" class="gc-badge">最适合本路线 · BEST MATCH</span>
         <h3 class="gc-name">{{ g.name }}</h3>
@@ -36,7 +62,8 @@ import { gearCompare, gapPicks, gearReviews } from '../../api/mock'
           </div>
           <span class="gap-price">{{ g.price }}</span>
         </div>
-        <div class="gap-review">「{{ gearReviews.quote }}」 · 已聚合 {{ gearReviews.totalCount.toLocaleString() }} 条真实评价</div>
+        <div v-if="!items.length" class="empty">该品类暂无装备数据。</div>
+        <div class="gap-review">{{ gearReviews.quote }} · 已聚合 {{ gearReviews.totalCount.toLocaleString() }} 条真实评价</div>
       </section>
     </div>
     <TabBar />
@@ -64,4 +91,5 @@ import { gearCompare, gapPicks, gearReviews } from '../../api/mock'
 .gap-meta { font-size: 9px; color: var(--t2); margin-top: 2px; }
 .gap-price { font-family: var(--vt); font-size: 16px; color: var(--lime); flex: none; }
 .gap-review { font-size: 9px; color: var(--t2); border-top: 1px dashed var(--line); padding-top: 10px; line-height: 1.6; }
+.empty { font-size: 11px; color: var(--t2); }
 </style>

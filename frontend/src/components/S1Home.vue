@@ -1,14 +1,24 @@
 <script setup>
 /** S1 首页 · 需求输入（桌面端，对齐设计稿 2:2）
- *  表单为真实控件（与后端队友的联调分支一致），提交走 api/mock.postRecommendations
+ *  表单为真实控件，提交走真实后端 POST /api/v1/recommendations/plan
  */
-import { reactive } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import HudNav from './HudNav.vue'
-import { brandStats, questFormDefaults, postRecommendations } from '../api/mock'
+import { fetchBrandStats, postRecommendations } from '../api/index'
+import { questFormDefaults } from '../api/index'
 
 const router = useRouter()
 const form = reactive(JSON.parse(JSON.stringify(questFormDefaults)))
+const brandStats = ref([])
+const submitting = ref(false)
+const errorMsg = ref('')
+
+onMounted(async () => {
+  try {
+    brandStats.value = await fetchBrandStats()
+  } catch { /* 后端未启动时保留空 */ }
+})
 
 const questions = [
   { no: 'Q1', text: '这条路适不适合我？' },
@@ -21,12 +31,25 @@ const toggle = (tag) => {
   i >= 0 ? form.interests.splice(i, 1) : form.interests.push(tag)
 }
 const locate = () => {
-  form.location.useCurrentPosition = true
-  console.log('[mock] 定位 →', form.location.lat, form.location.lng)
+  if (!navigator.geolocation) return
+  navigator.geolocation.getCurrentPosition((pos) => {
+    form.location.lat = +pos.coords.latitude.toFixed(5)
+    form.location.lng = +pos.coords.longitude.toFixed(5)
+    form.location.useCurrentPosition = true
+  })
 }
 const submit = async () => {
-  await postRecommendations(form)
-  router.push('/plan/results')
+  if (submitting.value) return
+  submitting.value = true
+  errorMsg.value = ''
+  try {
+    await postRecommendations(form)
+    router.push('/plan/results')
+  } catch (err) {
+    errorMsg.value = err.message || '推荐生成失败，请稍后重试'
+  } finally {
+    submitting.value = false
+  }
 }
 </script>
 
@@ -130,11 +153,12 @@ const submit = async () => {
           <input :value="form.ownedGear.join(' · ')" class="f-input"
                  @input="form.ownedGear = $event.target.value.split(/[·,，、\s]+/).filter(Boolean)" />
         </div>
-        <button class="cta" @click="submit">
-          <span class="cta-cn">开始生成路线</span>
+        <button class="cta" :disabled="submitting" @click="submit">
+          <span class="cta-cn">{{ submitting ? '生成中…' : '开始生成路线' }}</span>
           <span class="cta-en">PRESS START</span>
         </button>
       </div>
+      <div v-if="errorMsg" class="q-error">{{ errorMsg }}</div>
     </div>
   </section>
 </template>
@@ -221,4 +245,13 @@ const submit = async () => {
 .cta-cn { font-size: 20px; font-weight: 900; color: var(--ink); }
 .cta-en { font-family: var(--p8); font-size: 10px; color: var(--ink); }
 .cta:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #0A0A0A; }
+.cta:disabled { opacity: 0.6; cursor: wait; }
+.q-error {
+  background: var(--red-bg);
+  border: 1px solid var(--red-line);
+  color: var(--red);
+  font-size: 13px;
+  padding: 10px 14px;
+}
+.quest { height: auto; min-height: 351px; }
 </style>

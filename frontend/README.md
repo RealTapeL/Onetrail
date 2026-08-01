@@ -6,14 +6,15 @@ Vue 3 + Vite + vue-router 单页应用，**桌面与移动端同构**（同一�
 ## 启动
 
 ```bash
-cd one-trail-app
+cd frontend
 npm install
-npm run dev        # http://localhost:5173
+npm run dev        # http://localhost:5173（/api 代理到 127.0.0.1:8000 后端）
 npm run build      # 产物在 dist/
 npm run preview    # 预览构建产物
 ```
 
 桌面视口（≥820px）渲染桌面版 1440px 屏，移动视口（<820px）渲染移动端页面，路由不变。
+前端已接入真实后端：需先启动 backend（uvicorn，8000 端口），详见根目录 README。
 
 ## 路由（对齐 docs/SITEMAP.md 束状 IA）
 
@@ -31,13 +32,14 @@ npm run preview    # 预览构建产物
 ## 工程结构
 
 ```
-one-trail-app/
+frontend/
 ├── docs/
-│   ├── API.md               # 后端接口契约（请求/响应 JSON）
+│   ├── API.md               # 后端接口契约（请求/响应 JSON，v0.2 已对齐实现）
 │   └── SITEMAP.md           # 束状信息架构与路由表
 ├── public/images/           # 15 张设计稿导出图
 └── src/
-    ├── api/mock.js          # ★ 数据层：全部页面数据集中于此，结构对齐 API.md
+    ├── api/http.js          # fetch 封装（/api/v1、Bearer、会话 ensureSession）
+    ├── api/index.js         # ★ 数据层：全部页面数据的真实接口 loader
     ├── router.js            # 路由 + byDevice 桌面/移动组件切换
     ├── composables/useIsMobile.js
     ├── styles/main.css      # 设计 token
@@ -53,15 +55,22 @@ one-trail-app/
     └── App.vue / main.js
 ```
 
-## 后端接管方式（给后端队友）
+## 后端接入现状
 
-1. **看契约**：`docs/API.md` 有每个接口的请求/响应 JSON；`docs/SITEMAP.md` 有页面与接口的对应关系。
-2. **换数据**：页面数据全部来自 `src/api/mock.js` 的具名导出（brandStats / recommendation / routeDetail / plan / routeLibrary / weatherTip / gearCompare / gapPicks / gearReviews / me）。把这些对象替换为 `fetch('/api/v1/...')` 的返回即可，页面无需改动（换 HTTP 时在页面 setup 中改为 onMounted 拉取）。
-3. **联调代理**：在 `vite.config.js` 加 `server.proxy = { '/api': 'http://localhost:8080' }` 指向你的服务。
-4. **表单提交**：`postRecommendations(questForm)`（S1/M1 的 PRESS START 调用）即 `POST /recommendations` 的请求体形状。
+页面数据已全部切换到真实接口（`src/api/index.js`），原 mock 数据层已删除：
+
+- **会话**：`api/http.js` 的 `ensureSession()` 用预设管理员账号自动注册/登录，token 存 localStorage。
+- **S1/M1 需求输入** → `POST /api/v1/recommendations/plan`（体能等级映射为距离/爬升硬限制；兴趣写入偏好画像；已有装备按名称匹配目录 id）。
+- **S2/M6 推荐结果** ← 共享状态 `state.recommendation`（Top3 + 备选 + 风险提示）。
+- **S5/M2 路线库** → `GET /api/v1/routes`（关键词/景观标签筛选）；天气胶囊 → `GET /api/v1/meta/weather-tip`（浏览器定位，未授权时不显示）。
+- **S3/M5 路线详情** → `GET /api/v1/routes/{id}` + `/reviews`；收藏 → `POST/DELETE /favorite`。
+- **S4/M3 执行助手** ← 由选中推荐路线生成（交通/补给来自高德；时间线与海拔剖面为演示，界面已标注）。
+- **S6/M4 装备比选** → `GET /api/v1/equipment`（GAP PICKS 按 S1 预算过滤）+ `/equipment/reviews/summary`。
+
+联调代理已配置：`vite.config.js` 的 `server.proxy = { '/api': 'http://127.0.0.1:8000' }`。
 
 ## 设计还原要点
 
 - 字体：Press Start 2P / Silkscreen / VT323（像素英文）+ Noto Sans SC（中文），Google Fonts CDN
 - 实体投影（0 模糊）：白卡 `6px 6px 0 #A3E635`、装备卡 `4px 4px 0 #FFFFFF`（BEST MATCH 为荧光绿）、字段 `3px 3px 0 #0A0A0A`
-- 全部 0 圆角；投票条颜色由数据驱动（mock 中 `lime: true/false`）
+- 全部 0 圆角；投票条颜色由数据驱动（印象标签占比 ≥60% 为荧光绿，否则琥珀色）

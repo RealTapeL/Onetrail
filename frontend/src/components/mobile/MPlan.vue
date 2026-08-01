@@ -1,21 +1,34 @@
 <script setup>
-/** M1 规划 · 需求输入（移动端 Tab 1，对齐设计稿 6:21） */
-import { reactive } from 'vue'
+/** M1 规划 · 需求输入（移动端 Tab 1，对齐设计稿 6:21）
+ *  提交后调用真实后端 POST /api/v1/recommendations/plan
+ */
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import MHeader from './MHeader.vue'
 import TabBar from './TabBar.vue'
-import { questFormDefaults, postRecommendations } from '../../api/mock'
+import { postRecommendations, questFormDefaults } from '../../api/index'
 
 const router = useRouter()
 const form = reactive(JSON.parse(JSON.stringify(questFormDefaults)))
 const interestOptions = ['瀑布', '竹林', '古道', '云海']
+const submitting = ref(false)
+const errorMsg = ref('')
 const toggle = (tag) => {
   const i = form.interests.indexOf(tag)
   i >= 0 ? form.interests.splice(i, 1) : form.interests.push(tag)
 }
 const submit = async () => {
-  await postRecommendations(form)
-  router.push('/plan/results')
+  if (submitting.value) return
+  submitting.value = true
+  errorMsg.value = ''
+  try {
+    await postRecommendations(form)
+    router.push('/plan/results')
+  } catch (e) {
+    errorMsg.value = e?.message || '生成失败，请稍后重试'
+  } finally {
+    submitting.value = false
+  }
 }
 </script>
 
@@ -73,8 +86,9 @@ const submit = async () => {
                     :class="{ on: form.interests.includes(t) }" @click="toggle(t)">{{ t }}</button>
           </span></div>
 
-        <button class="cta" @click="submit">
-          <span class="cta-cn">开始生成路线</span>
+        <div v-if="errorMsg" class="q-error">{{ errorMsg }}</div>
+        <button class="cta" :disabled="submitting" @click="submit">
+          <span class="cta-cn">{{ submitting ? '生成中…' : '开始生成路线' }}</span>
           <span class="cta-en">PRESS START</span>
         </button>
       </section>
@@ -130,4 +144,6 @@ select.in { appearance: auto; }
 }
 .cta-cn { font-size: 15px; font-weight: 900; color: var(--ink); }
 .cta-en { font-family: var(--p8); font-size: 7px; color: var(--ink); }
+.cta:disabled { opacity: 0.6; }
+.q-error { font-size: 10px; font-weight: 500; color: var(--red); }
 </style>

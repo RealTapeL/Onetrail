@@ -1,15 +1,45 @@
 <script setup>
-/** M5 路线详情（下层页，对齐设计稿 6:25） */
+/** M5 路线详情（下层页，对齐设计稿 6:25）
+ *  数据来自真实后端 GET /api/v1/routes/{id}
+ */
+import { ref, watchEffect } from 'vue'
+import { useRoute } from 'vue-router'
 import BackHeader from './BackHeader.vue'
-import { routeDetail } from '../../api/mock'
+import { fetchRouteDetail, setFavorite } from '../../api/index'
+
+const route = useRoute()
+const routeDetail = ref(null)
+const favored = ref(false)
+
+watchEffect(async () => {
+  const id = Number(route.params.id)
+  if (!id) return
+  routeDetail.value = null
+  try {
+    routeDetail.value = await fetchRouteDetail(id)
+  } catch {
+    routeDetail.value = null
+  }
+})
+
+const toggleFavorite = async () => {
+  if (!routeDetail.value) return
+  try {
+    await setFavorite(routeDetail.value.id, !favored.value)
+    favored.value = !favored.value
+  } catch { /* 保持原状态 */ }
+}
 </script>
 
 <template>
   <div class="m-screen">
     <BackHeader back-text="返回路线库" to="/routes">
-      社区共识：值得去 · {{ routeDetail.verdict.voteCount.toLocaleString() }} 票
+      <span v-if="routeDetail">社区共识：{{ routeDetail.verdict.text }} · {{ routeDetail.verdict.voteCount.toLocaleString() }} 票</span>
+      <span v-else>路线详情</span>
     </BackHeader>
 
+    <div v-if="!routeDetail" class="m-body"><div class="loading">加载中…</div></div>
+    <template v-else>
     <div class="hero">
       <img class="hero-img" :src="routeDetail.coverImage" :alt="routeDetail.name" />
       <span class="video-chip">视频预览 · 00:42</span>
@@ -59,8 +89,9 @@ import { routeDetail } from '../../api/mock'
 
     <div class="cta-bar">
       <button class="cta-main" @click="$router.push('/trip/current')">加入出行计划</button>
-      <button class="cta-sub">收藏</button>
+      <button class="cta-sub" :class="{ on: favored }" @click="toggleFavorite">{{ favored ? '已收藏' : '收藏' }}</button>
     </div>
+    </template>
   </div>
 </template>
 
@@ -110,4 +141,6 @@ import { routeDetail } from '../../api/mock'
   font-size: 13px; font-weight: 700; color: var(--ink);
 }
 .cta-sub { width: 76px; height: 44px; background: #FFF; border: 2px solid var(--ink); font-size: 13px; font-weight: 700; color: var(--ink); }
+.cta-sub.on { background: var(--lime); }
+.loading { font-size: 11px; color: var(--t2); }
 </style>

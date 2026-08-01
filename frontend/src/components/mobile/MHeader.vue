@@ -1,6 +1,6 @@
 <script setup>
-/** 移动端 slim 头部（logo + LV chip），对齐 M1-M4 设计稿 */
-import { me } from '../../api/mock'
+/** 移动端 slim 头部（logo + 用户 chip），对齐 M1-M4 设计稿 */
+import { session } from '../../api/http'
 </script>
 
 <template>
@@ -14,7 +14,7 @@ import { me } from '../../api/mock'
       </svg>
       <span class="en">ONE TRAIL</span>
     </router-link>
-    <span class="lv">LV.{{ me.level }} {{ me.levelTitle }}</span>
+    <span class="lv">{{ session.user?.display_name || 'HIKER' }}</span>
   </header>
 </template>
 

@@ -1,8 +1,20 @@
 <script setup>
-/** M3 行程 · 执行助手（移动端 Tab 3，对齐设计稿 6:23） */
+/** M3 行程 · 执行助手（移动端 Tab 3，对齐设计稿 6:23）
+ *  数据来自推荐结果中的真实路线方案（M1/M6 选择后生成）
+ */
+import { computed, ref } from 'vue'
 import MHeader from './MHeader.vue'
 import TabBar from './TabBar.vue'
-import { plan } from '../../api/mock'
+import { buildPlan, state } from '../../api/index'
+
+const plan = computed(() => buildPlan(state.selectedRouteId))
+const checked = ref(new Set())
+const toggleCheck = (item) => {
+  const next = new Set(checked.value)
+  next.has(item) ? next.delete(item) : next.add(item)
+  checked.value = next
+}
+const gapCount = computed(() => (plan.value ? plan.value.checklist.length - checked.value.size : 0))
 
 const transitIcons = {
   train: '<rect x="4" y="3" width="12" height="3"/><rect x="3" y="6" width="14" height="7"/><rect x="5" y="8" width="3" height="3" class="cut"/><rect x="9" y="8" width="3" height="3" class="cut"/><rect x="13" y="8" width="3" height="3" class="cut"/><rect x="5" y="14" width="3" height="2"/><rect x="12" y="14" width="3" height="2"/>',
@@ -16,6 +28,11 @@ const bell = '<rect x="7" y="1" width="2" height="2"/><rect x="5" y="3" width="6
   <div class="m-screen">
     <MHeader />
     <div class="m-body">
+      <div v-if="!plan" class="empty">
+        还没有进行中的行程。请先在「规划」页生成推荐，并选择一条路线。
+        <button class="empty-btn" @click="$router.push('/plan')">去规划 →</button>
+      </div>
+      <template v-else>
       <div class="route-chip">{{ plan.title }}</div>
 
       <section class="panel">
@@ -44,16 +61,16 @@ const bell = '<rect x="7" y="1" width="2" height="2"/><rect x="5" y="3" width="6
         <div class="p-title">沿途补给与装备 · SUPPLY &amp; GEAR</div>
         <div class="supply">{{ plan.supplyText }}</div>
         <div class="gear-label">建议装备清单 · CHECKLIST</div>
-        <div v-for="g in plan.checklist" :key="g.item" class="gk-row">
-          <span class="gk-box" :class="{ on: g.owned }">
-            <svg v-if="g.owned" viewBox="0 0 18 18">
+        <div v-for="g in plan.checklist" :key="g.item" class="gk-row" @click="toggleCheck(g.item)">
+          <span class="gk-box" :class="{ on: checked.has(g.item) }">
+            <svg v-if="checked.has(g.item)" viewBox="0 0 18 18">
               <rect x="3" y="9" width="3" height="3" fill="#0B0B0B"/><rect x="6" y="12" width="3" height="3" fill="#0B0B0B"/>
               <rect x="9" y="9" width="3" height="3" fill="#0B0B0B"/><rect x="12" y="6" width="3" height="3" fill="#0B0B0B"/>
             </svg>
           </span>
-          <span class="gk-text" :class="{ dim: g.owned }">{{ g.item }}</span>
+          <span class="gk-text" :class="{ dim: checked.has(g.item) }">{{ g.item }}</span>
         </div>
-        <button class="gap-link" @click="$router.push('/gear')">缺口 {{ plan.checklist.filter(g => !g.owned).length }} 件 · 去装备比选 →</button>
+        <button class="gap-link" @click="$router.push('/gear')">缺口 {{ gapCount }} 件 · 去装备比选 →</button>
       </section>
 
       <section class="panel">
@@ -66,6 +83,7 @@ const bell = '<rect x="7" y="1" width="2" height="2"/><rect x="5" y="3" width="6
         </svg>
         <div class="p-dim">{{ plan.elevation.caption }}</div>
       </section>
+      </template>
     </div>
     <TabBar />
   </div>
@@ -97,4 +115,6 @@ const bell = '<rect x="7" y="1" width="2" height="2"/><rect x="5" y="3" width="6
 .gk-text.dim { color: var(--t2); }
 .gap-link { font-size: 10px; font-weight: 700; color: var(--lime); text-align: left; padding: 0; }
 .chart { width: 100%; height: 64px; }
+.empty { font-size: 11px; color: var(--t2); line-height: 1.8; display: flex; flex-direction: column; gap: 10px; }
+.empty-btn { align-self: flex-start; font-size: 11px; font-weight: 700; color: var(--lime); padding: 0; }
 </style>

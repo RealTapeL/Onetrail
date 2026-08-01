@@ -1,7 +1,11 @@
 <script setup>
 /** ONE TRAIL 原型 · vue-router 驱动
- *  路由与页面归属见 docs/SITEMAP.md；数据层见 src/api/mock.js（后端按 docs/API.md 替换）
+ *  路由与页面归属见 docs/SITEMAP.md；数据层 src/api/index.js 已接真实后端
  */
+import { onMounted } from 'vue'
+import { ensureSession } from './api/http'
+
+onMounted(ensureSession)
 </script>
 
 <template>

@@ -6,7 +6,7 @@
  */
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { me } from '../api/mock'
+import { session } from '../api/http'
 
 const route = useRoute()
 const active = computed(() => route.meta.bundle || 'plan')
@@ -37,8 +37,8 @@ const menus = [
     </div>
 
     <div class="right">
-      <span class="hud-chip">LV.{{ me.level }} {{ me.levelTitle }}</span>
-      <button class="login">登录 / 注册</button>
+      <span class="hud-chip">{{ session.user ? session.user.display_name : '未连接' }}</span>
+      <span class="login">{{ session.user ? '已登录' : '连接中…' }}</span>
     </div>
   </nav>
 </template>
