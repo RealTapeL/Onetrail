@@ -1,0 +1,100 @@
+/* ============== ONE TRAIL · 设计稿 token（取自 Ardot batch_read 实测值） ============== */
+:root {
+  /* 深色底 */
+  --bg: #0B0B0B;          /* 画布 / 深色面板底 */
+  --panel: #161616;       /* 深灰面板 */
+  --line: #2E2E2E;        /* 深色描边 */
+  /* 品牌色 */
+  --lime: #A3E635;        /* 荧光绿 */
+  --amber: #FFD028;       /* 街机黄 */
+  --red: #D32F2F;         /* 风险红 */
+  --red-line: #FF5252;
+  --red-bg: #FFF3F3;
+  /* 浅色面 */
+  --white: #FFFFFF;
+  --paper: #FAFAF7;       /* 表单字段底 */
+  --track: #EAEAE4;       /* 投票条轨道 */
+  /* 文字 */
+  --t1: #F5F5F5;
+  --t2: #8E8E8E;
+  --t3: #757575;
+  --t4: #555555;
+  --ink: #0B0B0B;
+  --ink2: #333333;
+  /* 字体 */
+  --cn: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --p8: 'Press Start 2P', monospace;
+  --silk: 'Silkscreen', monospace;
+  --vt: 'VT323', monospace;
+  /* 实体偏移投影（0 模糊） */
+  --sh-lime-6: 6px 6px 0 #A3E635;
+  --sh-lime-4: 4px 4px 0 #A3E635;
+  --sh-white-4: 4px 4px 0 #FFFFFF;
+  --sh-ink-3: 3px 3px 0 #0A0A0A;
+  --sh-ink-4: 4px 4px 0 #0A0A0A;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #app { min-height: 100%; }
+body {
+  background: #000000;
+  font-family: var(--cn);
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: inherit; border: none; background: none; cursor: pointer; padding: 0; }
+input { font-family: inherit; border: none; outline: none; background: none; }
+
+/* ============== 屏容器：严格 1440×960，溢出裁切 ============== */
+.screen {
+  width: 1440px;
+  height: 960px;
+  background: var(--bg);
+  overflow: hidden;
+  position: relative;
+  flex: none;
+}
+
+/* ============== 通用：深色面板 + 面板标题 ============== */
+.panel-d {
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+.ptitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+/* ============== 屏头（S2–S6 共用结构） ============== */
+.screen-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 48px 24px;
+}
+.sh-title-cn {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--white);
+  line-height: 1.25;
+}
+.sh-title-en {
+  font-family: var(--silk);
+  font-size: 12px;
+  color: var(--lime);
+  margin-top: 8px;
+}
+.sh-chip {
+  background: var(--panel);
+  color: var(--t1);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 11px 16px;
+}
+.sh-chip.lime {
+  background: var(--bg);
+  border: 1px solid var(--lime);
+  color: var(--lime);
+  font-weight: 700;
+}
