@@ -1,4 +1,4 @@
-# YiJing · 徒步决策辅助平台
+# YiJing
 
 YiJing 不是单纯的轨迹记录工具，而是一个帮助用户在出发前完成徒步决策的平台：
 
@@ -142,4 +142,3 @@ DATABASE_URL=sqlite:///./test.db python -m pytest -q
 - 徒步日历、成就墙和完整个人成长闭环
 - Alembic 生产迁移脚本
 - 图片/视频对象存储与内容审核后台
-
