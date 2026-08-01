@@ -1,37 +1,43 @@
 <script setup>
-/* HUD Nav — 6 屏共用，1440×72，pad 0 40，space-between */
-defineProps({
-  active: { type: String, default: 'plan' } // plan | lib | gear | community | none
-})
-const emit = defineEmits(['nav'])
+/**
+ * HUD Nav · Web 顶部导航（对齐 Ardot 组件 6:4）
+ * 菜单对齐束状 IA：开始规划 / 路线库 / 我的行程 / 装备
+ * 激活态由路由 meta.bundle 决定
+ */
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { me } from '../api/mock'
+
+const route = useRoute()
+const active = computed(() => route.meta.bundle || 'plan')
 
 const menus = [
-  { key: 'plan', label: '开始规划', to: 's1' },
-  { key: 'lib', label: '路线库', to: 's5' },
-  { key: 'gear', label: '装备比选', to: 's6' },
-  { key: 'community', label: '社区', to: 's3' }
+  { key: 'plan', label: '开始规划', to: '/plan' },
+  { key: 'library', label: '路线库', to: '/routes' },
+  { key: 'trip', label: '我的行程', to: '/trip/current' },
+  { key: 'gear', label: '装备', to: '/gear' }
 ]
 </script>
 
 <template>
   <nav class="hud-nav">
-    <div class="logo" @click="emit('nav', 's1')">
+    <router-link class="logo" to="/plan">
       <span class="logo-mark">
         <i v-for="p in [[12,6],[8,10],[16,10],[4,14],[12,14],[20,14]]"
            :key="p.join(',')" :style="{ left: p[0]+'px', top: p[1]+'px' }" />
       </span>
       <span class="logo-cn">一径</span>
       <span class="logo-en">ONE TRAIL</span>
-    </div>
+    </router-link>
 
     <div class="menu">
-      <button v-for="m in menus" :key="m.key"
-              class="mi" :class="{ on: active === m.key }"
-              @click="emit('nav', m.to)">{{ m.label }}</button>
+      <router-link v-for="m in menus" :key="m.key"
+                   class="mi" :class="{ on: active === m.key }"
+                   :to="m.to">{{ m.label }}</router-link>
     </div>
 
     <div class="right">
-      <span class="hud-chip">LV.3 HIKER</span>
+      <span class="hud-chip">LV.{{ me.level }} {{ me.levelTitle }}</span>
       <button class="login">登录 / 注册</button>
     </div>
   </nav>
@@ -48,23 +54,14 @@ const menus = [
   background: var(--bg);
   flex: none;
 }
-.logo { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-.logo-mark {
-  position: relative;
-  width: 28px; height: 28px;
-  background: #2F5B2A;
-  flex: none;
-}
-.logo-mark i {
-  position: absolute;
-  width: 4px; height: 4px;
-  background: #FFFFFF;
-}
+.logo { display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none; }
+.logo-mark { position: relative; width: 28px; height: 28px; background: #2F5B2A; flex: none; }
+.logo-mark i { position: absolute; width: 4px; height: 4px; background: #FFFFFF; }
 .logo-cn { font-size: 20px; font-weight: 900; color: #FFFFFF; }
 .logo-en { font-family: var(--p8); font-size: 11px; color: var(--lime); }
 
 .menu { display: flex; align-items: center; gap: 32px; }
-.mi { font-size: 14px; font-weight: 500; color: var(--t2); }
+.mi { font-size: 14px; font-weight: 500; color: var(--t2); text-decoration: none; }
 .mi.on { color: var(--lime); font-weight: 700; }
 .mi:hover { color: var(--t1); }
 .mi.on:hover { color: var(--lime); }
@@ -78,11 +75,5 @@ const menus = [
   font-size: 11px;
   color: var(--lime);
 }
-.login {
-  background: var(--lime);
-  padding: 10px 20px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink);
-}
+.login { background: var(--lime); padding: 10px 20px; font-size: 13px; font-weight: 700; color: var(--ink); }
 </style>

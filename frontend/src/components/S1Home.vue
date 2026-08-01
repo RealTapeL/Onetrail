@@ -1,40 +1,39 @@
 <script setup>
+/** S1 首页 · 需求输入（桌面端，对齐设计稿 2:2）
+ *  表单为真实控件（与后端队友的联调分支一致），提交走 api/mock.postRecommendations
+ */
+import { reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import HudNav from './HudNav.vue'
-const emit = defineEmits(['nav'])
+import { brandStats, questFormDefaults, postRecommendations } from '../api/mock'
 
-const fields1 = [
-  { label: '出行日期 · DATE',      value: '5月2日 – 5月4日 · 3天2晚' },
-  { label: '目的地 · LOCATION',    value: '杭州 · 西湖区（当前定位）' },
-  { label: '同行人数 · PARTY',     value: '2 人 · 朋友同行' },
-  { label: '预算 · BUDGET',        value: '¥300 – 500 / 人' }
-]
-const fields2 = [
-  { label: '体能 · FITNESS',       value: 'Lv.3 · 日常有锻炼习惯' },
-  { label: '已有装备 · MY GEAR',   value: '登山鞋 · 背包 · 登山杖' }
-]
-const interests = [
-  { label: '瀑布', on: true },
-  { label: '竹林', on: true },
-  { label: '古道', on: false },
-  { label: '云海', on: false }
-]
+const router = useRouter()
+const form = reactive(JSON.parse(JSON.stringify(questFormDefaults)))
+
 const questions = [
   { no: 'Q1', text: '这条路适不适合我？' },
   { no: 'Q2', text: '这条路值不值得去？' },
   { no: 'Q3', text: '怎么去、怎么走、带什么？' }
 ]
-const stats = [
-  { num: '12,847', label: '条精选路线' },
-  { num: '86,000+', label: '徒步者在用' },
-  { num: '342', label: '座城市覆盖' }
-]
+const interestOptions = ['瀑布', '竹林', '古道', '云海']
+const toggle = (tag) => {
+  const i = form.interests.indexOf(tag)
+  i >= 0 ? form.interests.splice(i, 1) : form.interests.push(tag)
+}
+const locate = () => {
+  form.location.useCurrentPosition = true
+  console.log('[mock] 定位 →', form.location.lat, form.location.lng)
+}
+const submit = async () => {
+  await postRecommendations(form)
+  router.push('/plan/results')
+}
 </script>
 
 <template>
   <section class="screen">
-    <HudNav active="plan" @nav="emit('nav', $event)" />
+    <HudNav />
 
-    <!-- Hero 1440×490，pad 40/48/32/48，gap 40 -->
     <div class="hero">
       <div class="hero-left">
         <div class="kicker"><span class="k-sq" /><span class="k-en">HIKING ROUTE DECISION ENGINE</span></div>
@@ -57,14 +56,13 @@ const stats = [
         </div>
 
         <div class="bstats">
-          <div v-for="s in stats" :key="s.label" class="bs">
+          <div v-for="s in brandStats" :key="s.label" class="bs">
             <div class="bs-num">{{ s.num }}</div>
             <div class="bs-label">{{ s.label }}</div>
           </div>
         </div>
       </div>
 
-      <!-- 像素山 420×280 -->
       <div class="pixel-art">
         <span class="px amber" style="left:62px; top:14px; width:32px; height:32px;" />
         <span class="px white" style="left:178px; top:22px;" />
@@ -79,7 +77,6 @@ const stats = [
       </div>
     </div>
 
-    <!-- Quest Input Panel 1440×351，白底，pad 40，gap 24 -->
     <div class="quest">
       <div class="q-head">
         <div class="q-titles">
@@ -90,27 +87,50 @@ const stats = [
       </div>
 
       <div class="q-grid">
-        <div v-for="f in fields1" :key="f.label" class="field">
-          <div class="f-label">{{ f.label }}</div>
-          <div class="f-value">{{ f.value }}</div>
+        <div class="field">
+          <div class="f-label">出行日期 · DATE</div>
+          <input type="date" v-model="form.dateRange.start" class="f-input" />
+        </div>
+        <div class="field">
+          <div class="f-label">目的地 · LOCATION</div>
+          <div class="f-row">
+            <input v-model="form.location.city" class="f-input" placeholder="城市" />
+            <button class="locate" @click="locate">定位</button>
+          </div>
+          <div class="f-row">
+            <input v-model.number="form.location.lat" class="f-input half" />
+            <input v-model.number="form.location.lng" class="f-input half" />
+          </div>
+        </div>
+        <div class="field">
+          <div class="f-label">同行人数 · PARTY</div>
+          <input type="number" min="1" v-model.number="form.party.adults" class="f-input" />
+        </div>
+        <div class="field">
+          <div class="f-label">预算 · BUDGET（元/人）</div>
+          <input type="number" v-model.number="form.budgetPerPerson.max" class="f-input" />
         </div>
       </div>
       <div class="q-grid">
         <div class="field">
-          <div class="f-label">{{ fields2[0].label }}</div>
-          <div class="f-value">{{ fields2[0].value }}</div>
+          <div class="f-label">体能 · FITNESS</div>
+          <select v-model.number="form.fitnessLevel" class="f-input">
+            <option v-for="n in 5" :key="n" :value="n">Lv.{{ n }}</option>
+          </select>
         </div>
         <div class="field">
           <div class="f-label">兴趣 · INTERESTS</div>
           <div class="f-chips">
-            <span v-for="c in interests" :key="c.label" class="i-chip" :class="{ on: c.on }">{{ c.label }}</span>
+            <button v-for="t in interestOptions" :key="t" class="i-chip"
+                    :class="{ on: form.interests.includes(t) }" @click="toggle(t)">{{ t }}</button>
           </div>
         </div>
         <div class="field">
-          <div class="f-label">{{ fields2[1].label }}</div>
-          <div class="f-value">{{ fields2[1].value }}</div>
+          <div class="f-label">已有装备 · MY GEAR</div>
+          <input :value="form.ownedGear.join(' · ')" class="f-input"
+                 @input="form.ownedGear = $event.target.value.split(/[·,，、\s]+/).filter(Boolean)" />
         </div>
-        <button class="cta" @click="emit('nav', 's2')">
+        <button class="cta" @click="submit">
           <span class="cta-cn">开始生成路线</span>
           <span class="cta-en">PRESS START</span>
         </button>
@@ -120,14 +140,7 @@ const stats = [
 </template>
 
 <style scoped>
-/* Hero */
-.hero {
-  height: 490px;
-  padding: 40px 48px 32px;
-  display: flex;
-  align-items: center;
-  gap: 40px;
-}
+.hero { height: 490px; padding: 40px 48px 32px; display: flex; align-items: center; gap: 40px; }
 .hero-left { width: 884px; display: flex; flex-direction: column; gap: 20px; }
 .kicker { display: flex; align-items: center; gap: 10px; }
 .k-sq { width: 10px; height: 10px; background: var(--lime); }
@@ -143,12 +156,7 @@ const stats = [
 .slogan-en { font-family: var(--silk); font-size: 10px; color: var(--lime); }
 
 .qs { display: flex; gap: 12px; }
-.q-chip {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: var(--panel);
-  border: 1px solid var(--lime);
-  padding: 9px 14px;
-}
+.q-chip { display: inline-flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--lime); padding: 9px 14px; }
 .q-no { font-family: var(--silk); font-weight: 700; font-size: 11px; color: var(--lime); }
 .q-tx { font-size: 13px; font-weight: 500; color: var(--t1); }
 
@@ -157,22 +165,13 @@ const stats = [
 .bs-num { font-family: var(--vt); font-size: 28px; color: var(--lime); line-height: 1; }
 .bs-label { font-size: 12px; color: var(--t2); }
 
-/* 像素山 */
 .pixel-art { position: relative; width: 420px; height: 280px; flex: none; }
 .px { position: absolute; width: 14px; height: 14px; background: #FFFFFF; }
 .px.amber { background: var(--amber); }
 .px.lime-w { width: 35px; height: 14px; background: var(--lime); }
 .mtn { position: absolute; left: 0; bottom: 0; width: 420px; height: 210px; }
 
-/* Quest Panel */
-.quest {
-  height: 351px;
-  background: #FFFFFF;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
+.quest { height: 351px; background: #FFFFFF; padding: 40px; display: flex; flex-direction: column; gap: 24px; }
 .q-head { display: flex; align-items: center; justify-content: space-between; }
 .q-titles { display: flex; flex-direction: column; gap: 6px; }
 .q-cn { font-size: 24px; font-weight: 900; color: var(--ink); }
@@ -184,20 +183,28 @@ const stats = [
   background: var(--paper);
   border: 1px solid var(--ink);
   box-shadow: var(--sh-ink-3);
-  padding: 18px;
+  padding: 14px 14px 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   min-height: 86px;
 }
 .f-label { font-size: 12px; font-weight: 500; color: var(--t3); }
-.f-value { font-size: 16px; font-weight: 700; color: var(--ink); }
-.f-chips { display: flex; gap: 8px; }
-.i-chip {
-  font-size: 12px; font-weight: 500; color: var(--ink);
-  background: #FFFFFF; border: 1px solid var(--ink);
-  padding: 5px 10px;
+.f-input {
+  font-size: 15px; font-weight: 700; color: var(--ink);
+  border: 1px solid #D8D8D0; background: #FFFFFF;
+  padding: 6px 8px; width: 100%;
 }
+.f-input:focus { outline: none; border-color: var(--ink); }
+.f-input.half { width: 48%; }
+.f-row { display: flex; align-items: center; gap: 8px; }
+.f-row .f-input { flex: 1; }
+.locate {
+  flex: none; background: var(--ink); color: var(--lime);
+  font-size: 12px; font-weight: 700; padding: 7px 12px;
+}
+.f-chips { display: flex; gap: 8px; }
+.i-chip { font-size: 12px; font-weight: 500; color: var(--ink); background: #FFFFFF; border: 1px solid var(--ink); padding: 5px 10px; }
 .i-chip.on { background: var(--ink); color: var(--lime); font-weight: 700; border-color: var(--ink); }
 
 .cta {
