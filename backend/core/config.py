@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "Hiking Decision API"
+    app_name: str = "Onetrail API"
     # Development fallback only; production must supply APP_SECRET_KEY from a secret manager.
     app_secret_key: str = "development-only-secret-key-replace-before-production"
     # PostgreSQL is the application database. SQLite is supported only for isolated tests.

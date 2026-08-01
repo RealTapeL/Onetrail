@@ -310,42 +310,6 @@ wheels = [
 ]
 
 [[package]]
-name = "hiking-decision-api"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "email-validator" },
-    { name = "fastapi" },
-    { name = "psycopg", extra = ["binary"] },
-    { name = "pwdlib", extra = ["argon2"] },
-    { name = "pydantic-settings" },
-    { name = "pyjwt" },
-    { name = "sqlalchemy" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "httpx2" },
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "email-validator", specifier = ">=2.2,<3.0" },
-    { name = "fastapi", specifier = ">=0.115,<1.0" },
-    { name = "httpx2", marker = "extra == 'dev'", specifier = ">=2.0,<3.0" },
-    { name = "psycopg", extras = ["binary"], specifier = ">=3.2,<4.0" },
-    { name = "pwdlib", extras = ["argon2"], specifier = ">=0.2,<1.0" },
-    { name = "pydantic-settings", specifier = ">=2.5,<3.0" },
-    { name = "pyjwt", specifier = ">=2.9,<3.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0,<10.0" },
-    { name = "sqlalchemy", specifier = ">=2.0,<3.0" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.30,<1.0" },
-]
-provides-extras = ["dev"]
-
-[[package]]
 name = "httpcore2"
 version = "2.9.1"
 source = { registry = "https://pypi.org/simple" }
@@ -434,6 +398,42 @@ sdist = { url = "https://files.pythonhosted.org/packages/72/34/14ca021ce8e5dfedc
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cb/b1/3846dd7f199d53cb17f49cba7e651e9ce294d8497c8c150530ed11865bb8/iniconfig-2.3.0-py3-none-any.whl", hash = "sha256:f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12", size = 7484, upload-time = "2025-10-18T21:55:41.639Z" },
 ]
+
+[[package]]
+name = "onetrail-api"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "email-validator" },
+    { name = "fastapi" },
+    { name = "psycopg", extra = ["binary"] },
+    { name = "pwdlib", extra = ["argon2"] },
+    { name = "pydantic-settings" },
+    { name = "pyjwt" },
+    { name = "sqlalchemy" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "httpx2" },
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "email-validator", specifier = ">=2.2,<3.0" },
+    { name = "fastapi", specifier = ">=0.115,<1.0" },
+    { name = "httpx2", marker = "extra == 'dev'", specifier = ">=2.0,<3.0" },
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.2,<4.0" },
+    { name = "pwdlib", extras = ["argon2"], specifier = ">=0.2,<1.0" },
+    { name = "pydantic-settings", specifier = ">=2.5,<3.0" },
+    { name = "pyjwt", specifier = ">=2.9,<3.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0,<10.0" },
+    { name = "sqlalchemy", specifier = ">=2.0,<3.0" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.30,<1.0" },
+]
+provides-extras = ["dev"]
 
 [[package]]
 name = "packaging"

@@ -1,7 +1,7 @@
 [project]
-name = "hiking-decision-api"
+name = "onetrail-api"
 version = "0.1.0"
-description = "API backend for a hiking decision-support platform"
+description = "Onetrail backend API for hiking decision support"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115,<1.0",

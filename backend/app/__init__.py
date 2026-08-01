@@ -1,2 +1,1 @@
-"""Hiking decision API application package."""
-
+"""Onetrail API application package."""
