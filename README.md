@@ -59,14 +59,17 @@ Onetrail/
 前端是 Vue 3 + Vite 原型，6 个页面已接入后端真实数据（预设演示账号自动登录）：
 
 ```bash
-# 1. 先启动后端（见上文，默认 127.0.0.1:8000）
-# 2. 启动前端开发服务器（/api 已代理到后端）
+# 1. 先启动后端（监听 0.0.0.0，允许局域网访问）
+cd backend
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+# 2. 启动前端开发服务器（已配置 host 0.0.0.0，/api 代理到后端）
 cd frontend
 npm ci
 npm run dev
 ```
 
-打开 <http://localhost:5173>。首次启动会自动注册并登录演示账号 `admin@onetrail.dev`。
+本机访问 <http://localhost:5173>；局域网内其他设备访问 `http://<本机IP>:5173`（当前为 <http://192.168.0.109:5173>，IP 变化时以 `ip addr` 为准）。后端 API 也可直接通过 `http://<本机IP>:8000/docs` 访问。首次启动会自动注册并登录演示账号 `admin@onetrail.dev`。
 
 ## 本地启动
 
