@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: hiking_decision
+      POSTGRES_USER: hiking_app
+      # For local development only. Replace before deploying.
+      POSTGRES_PASSWORD: change-me
+    ports:
+      # The host already has PostgreSQL on 5432; expose the container on 5433.
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hiking_app -d hiking_decision"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:

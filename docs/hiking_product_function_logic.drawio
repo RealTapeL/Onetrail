@@ -1,0 +1,44 @@
+<mxfile host="app.diagrams.net"><diagram name="徒步决策辅助平台-产品功能逻辑"><mxGraphModel><root>
+<mxCell id="0"/><mxCell id="1" parent="0"/>
+<mxCell id="2" value="徒步决策辅助平台｜产品功能逻辑图" style="text;html=1;fontSize=24;fontStyle=1;fontColor=#17324D" vertex="1" parent="1"><mxGeometry x="40" y="20" width="700" height="40" as="geometry"/></mxCell>
+<mxCell id="3" value="产品目标：帮助用户在出发前完成“适配判断 → 价值判断 → 出行执行”" style="text;html=1;fontSize=14;fontColor=#536777" vertex="1" parent="1"><mxGeometry x="42" y="60" width="800" height="30" as="geometry"/></mxCell>
+
+<mxCell id="4" value="一、用户入口与决策目标" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#17324D;fontColor=#FFFFFF;fontSize=17;fontStyle=1" vertex="1" parent="1"><mxGeometry x="40" y="120" width="290" height="48" as="geometry"/></mxCell>
+<mxCell id="5" value="用户需求输入&#xa;组成：出行日期、目的地/当前位置、同行人数、预算、体能、兴趣、已有装备&#xa;&#xa;要做什么：收集推荐所需条件，降低用户决策成本" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F4FF;strokeColor=#3D8FD1;fontSize=14;fontStyle=1" vertex="1" parent="1"><mxGeometry x="40" y="185" width="290" height="130" as="geometry"/></mxCell>
+<mxCell id="6" value="三大决策问题&#xa;① 这条路适不适合我？&#xa;② 这条路值不值得去？&#xa;③ 怎么去、怎么走、带什么？&#xa;&#xa;要做什么：把复杂信息转成可理解的判断" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF4D6;strokeColor=#D8A72E;fontSize=14;fontStyle=1" vertex="1" parent="1"><mxGeometry x="40" y="335" width="290" height="140" as="geometry"/></mxCell>
+
+<mxCell id="7" value="二、智能线路推荐｜参赛核心功能" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#17324D;fontColor=#FFFFFF;fontSize=17;fontStyle=1" vertex="1" parent="1"><mxGeometry x="380" y="120" width="360" height="48" as="geometry"/></mxCell>
+<mxCell id="8" value="数据接入层&#xa;组成：天气 API、地图 MCP、路线库、地形标签、用户历史打卡&#xa;&#xa;要做什么：获取实时环境、路线结构和用户能力数据" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F4ECFF;strokeColor=#9468CC;fontSize=14;fontStyle=1" vertex="1" parent="1"><mxGeometry x="380" y="185" width="360" height="105" as="geometry"/></mxCell>
+<mxCell id="9" value="适配判断引擎&#xa;组成：距离、爬升、耗时、难度、天气、泥泞风险、体能偏好&#xa;&#xa;要做什么：计算路线与用户的匹配度，并解释“为什么推荐”" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F4ECFF;strokeColor=#9468CC;fontSize=14;fontStyle=1" vertex="1" parent="1"><mxGeometry x="380" y="310" width="360" height="115" as="geometry"/></mxCell>
+<mxCell id="10" value="推荐与方案生成&#xa;组成：Top N 路线、推荐理由、备选路线、风险提示&#xa;&#xa;要做什么：把推荐结果变成可执行的徒步计划" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9F8EE;strokeColor=#4DA66C;fontSize=14;fontStyle=1" vertex="1" parent="1"><mxGeometry x="380" y="445" width="360" height="110" as="geometry"/></mxCell>
+<mxCell id="11" value="出行执行助手&#xa;组成：大交通、接驳、预计时间、沿途补给点、建议装备清单&#xa;&#xa;要做什么：解决“怎么去、怎么走、带什么”，支持收藏/分享/约伴" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9F8EE;strokeColor=#4DA66C;fontSize=14;fontStyle=1" vertex="1" parent="1"><mxGeometry x="380" y="575" width="360" height="115" as="geometry"/></mxCell>
+
+<mxCell id="12" value="三、路线内容与社区信息" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#17324D;fontColor=#FFFFFF;fontSize=17;fontStyle=1" vertex="1" parent="1"><mxGeometry x="790" y="120" width="360" height="48" as="geometry"/></mxCell>
+<mxCell id="13" value="路线库与搜索发现&#xa;组成：路线列表、关键词搜索、瀑布/古道/竹林等标签筛选、天气推荐入口&#xa;&#xa;要做什么：让用户发现和比较候选路线" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9E8;strokeColor=#D8A72E;fontSize=14;fontStyle=1" vertex="1" parent="1"><mxGeometry x="790" y="185" width="360" height="110" as="geometry"/></mxCell>
+<mxCell id="14" value="路线详情与可信档案&#xa;组成：视频预览、距离/爬升/耗时、难度评分、评价列表、适合人群&#xa;&#xa;要做什么：提供真实、完整、可判断的路线信息" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9E8;strokeColor=#D8A72E;fontSize=14;fontStyle=1" vertex="1" parent="1"><mxGeometry x="790" y="315" width="360" height="110" as="geometry"/></mxCell>
+<mxCell id="15" value="地形与安全标签&#xa;组成：垭口、溪谷、碎石坡、涉水、陡坡等标签；标签解释和安全提示&#xa;&#xa;要做什么：补充传统路线数据，帮助用户判断风险与装备需求" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9E8;strokeColor=#D8A72E;fontSize=14;fontStyle=1" vertex="1" parent="1"><mxGeometry x="790" y="445" width="360" height="115" as="geometry"/></mxCell>
+<mxCell id="16" value="路线气质与体验投票&#xa;组成：出片、故事、自然体验、体能挑战等投票维度&#xa;&#xa;要做什么：用社区共识快速回答“值不值得去、是不是我想要的”" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9E8;strokeColor=#D8A72E;fontSize=14;fontStyle=1" vertex="1" parent="1"><mxGeometry x="790" y="580" width="360" height="110" as="geometry"/></mxCell>
+
+<mxCell id="17" value="四、约伴与出行协同" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#17324D;fontColor=#FFFFFF;fontSize=17;fontStyle=1" vertex="1" parent="1"><mxGeometry x="40" y="750" width="290" height="48" as="geometry"/></mxCell>
+<mxCell id="18" value="组成：轻约局列表与详情、同行点匹配、拼车/保障车发布、同行人管理、临时对话&#xa;&#xa;要做什么：在正式组队前保护隐私，匹配同路线/同出发点用户，降低独自出行门槛" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF4D6;strokeColor=#D8A72E;fontSize=14;fontStyle=1" vertex="1" parent="1"><mxGeometry x="40" y="815" width="290" height="130" as="geometry"/></mxCell>
+
+<mxCell id="19" value="五、个人成长与数据闭环" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#17324D;fontColor=#FFFFFF;fontSize=17;fontStyle=1" vertex="1" parent="1"><mxGeometry x="380" y="750" width="360" height="48" as="geometry"/></mxCell>
+<mxCell id="20" value="组成：打卡照片、印象标签、综合评分、徒步日历、数据统计、想去/去过/收藏、成就墙（6/24）&#xa;&#xa;要做什么：沉淀真实体验，形成用户能力画像，反哺下一次推荐并激励持续徒步" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F4FF;strokeColor=#3D8FD1;fontSize=14;fontStyle=1" vertex="1" parent="1"><mxGeometry x="380" y="815" width="360" height="130" as="geometry"/></mxCell>
+
+<mxCell id="21" value="六、装备比选｜扩展模块" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#17324D;fontColor=#FFFFFF;fontSize=17;fontStyle=1" vertex="1" parent="1"><mxGeometry x="790" y="750" width="360" height="48" as="geometry"/></mxCell>
+<mxCell id="22" value="组成：背包、徒步鞋、帐篷、睡袋；按场景、品牌、价格、重量、防护能力比较；用户真实评价&#xa;&#xa;要做什么：聚合分散的装备信息，并根据路线地形、天气和用户预算生成装备建议，与出发方案联动" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE8F0;strokeColor=#C95A83;fontSize=14;fontStyle=1" vertex="1" parent="1"><mxGeometry x="790" y="815" width="360" height="130" as="geometry"/></mxCell>
+
+<mxCell id="23" value="基础支撑：登录/注册、品牌页、消息系统、收藏分享、内容审核、通知与安全机制" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F4F6F8;strokeColor=#8B9AA8;fontSize=14;fontStyle=1" vertex="1" parent="1"><mxGeometry x="40" y="995" width="1110" height="55" as="geometry"/></mxCell>
+
+<mxCell id="24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=2;strokeColor=#3D8FD1" edge="1" parent="1" source="5" target="8"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=2;strokeColor=#9468CC" edge="1" parent="1" source="8" target="9"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=2;strokeColor=#9468CC" edge="1" parent="1" source="9" target="10"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=2;strokeColor=#4DA66C" edge="1" parent="1" source="10" target="11"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=1;dashed=1;strokeColor=#D8A72E" edge="1" parent="1" source="13" target="9"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=1;dashed=1;strokeColor=#D8A72E" edge="1" parent="1" source="14" target="9"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=1;dashed=1;strokeColor=#D8A72E" edge="1" parent="1" source="15" target="9"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=1;dashed=1;strokeColor=#D8A72E" edge="1" parent="1" source="16" target="9"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=1;dashed=1;strokeColor=#3D8FD1" edge="1" parent="1" source="20" target="9"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=1;dashed=1;strokeColor=#C95A83" edge="1" parent="1" source="22" target="11"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=1;dashed=1;strokeColor=#D8A72E" edge="1" parent="1" source="18" target="11"><mxGeometry relative="1" as="geometry"/></mxCell>
+</root></mxGraphModel></diagram></mxfile>
