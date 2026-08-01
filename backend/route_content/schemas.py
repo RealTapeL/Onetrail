@@ -24,6 +24,7 @@ class RouteCreate(BaseModel):
     elevation_gain_m: int = Field(ge=0, le=30000)
     estimated_duration_min: int = Field(gt=0, le=10080)
     difficulty: str = Field(pattern="^(easy|moderate|hard|expert)$")
+    suitable_for: str | None = Field(default=None, max_length=200)
     video_url: HttpUrl | None = None
     tags: list[RouteTagInput] = Field(default_factory=list, max_length=50)
 
@@ -40,12 +41,21 @@ class RouteSummary(BaseModel):
     difficulty: str
 
 
+class ImpressionStat(BaseModel):
+    tag: str
+    count: int
+
+
 class RouteDetail(RouteSummary):
     description: str | None
     start_latitude: float
     start_longitude: float
+    suitable_for: str | None
     video_url: str | None
     tags: list[RouteTagResponse]
+    average_rating: float | None
+    review_count: int
+    impression_stats: list[ImpressionStat]
 
 
 class ReviewCreate(BaseModel):
@@ -62,5 +72,10 @@ class ReviewResponse(BaseModel):
     rating: int
     content: str | None
     impression_tags: list[str]
+    created_at: datetime | None
+
+
+class FavoriteResponse(BaseModel):
+    route_id: str
     created_at: datetime | None
 

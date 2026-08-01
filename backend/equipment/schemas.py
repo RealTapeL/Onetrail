@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 
@@ -24,4 +26,21 @@ class EquipmentResponse(BaseModel):
     specifications: dict[str, str | int | float | bool]
     suitable_scenarios: list[str]
     source_url: str | None
+    average_rating: float | None
+    review_count: int
+
+
+class EquipmentReviewCreate(BaseModel):
+    rating: int = Field(ge=1, le=5)
+    content: str | None = Field(default=None, max_length=5000)
+
+
+class EquipmentReviewResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    author_id: str
+    rating: int
+    content: str | None
+    created_at: datetime | None
 

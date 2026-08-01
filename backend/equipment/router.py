@@ -1,19 +1,34 @@
 import json
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from core.security import get_current_user
 from database.session import get_db
-from equipment.models import Equipment
-from equipment.schemas import EquipmentCreate, EquipmentResponse
+from equipment.models import Equipment, EquipmentReview
+from equipment.schemas import (
+    EquipmentCreate,
+    EquipmentResponse,
+    EquipmentReviewCreate,
+    EquipmentReviewResponse,
+)
 from identity.models import User
 
 router = APIRouter(prefix="/equipment", tags=["装备比选"])
 
 
-def serialize_equipment(item: Equipment) -> EquipmentResponse:
+def get_equipment_or_404(db: Session, equipment_id: str) -> Equipment:
+    item = db.get(Equipment, equipment_id)
+    if item is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="装备不存在")
+    return item
+
+
+def serialize_equipment(db: Session, item: Equipment) -> EquipmentResponse:
+    ratings = db.scalars(select(EquipmentReview.rating).where(EquipmentReview.equipment_id == item.id)).all()
+    review_count = len(ratings)
+    average_rating = round(sum(ratings) / review_count, 1) if review_count else None
     return EquipmentResponse(
         id=item.id,
         name=item.name,
@@ -24,6 +39,18 @@ def serialize_equipment(item: Equipment) -> EquipmentResponse:
         specifications=json.loads(item.specifications),
         suitable_scenarios=json.loads(item.suitable_scenarios),
         source_url=item.source_url,
+        average_rating=average_rating,
+        review_count=review_count,
+    )
+
+
+def serialize_review(review: EquipmentReview) -> EquipmentReviewResponse:
+    return EquipmentReviewResponse(
+        id=review.id,
+        author_id=review.author_id,
+        rating=review.rating,
+        content=review.content,
+        created_at=review.created_at,
     )
 
 
@@ -38,7 +65,7 @@ def list_equipment(
         statement = statement.where(Equipment.category == category)
     if brand:
         statement = statement.where(Equipment.brand == brand)
-    return [serialize_equipment(item) for item in db.scalars(statement).all()]
+    return [serialize_equipment(db, item) for item in db.scalars(statement).all()]
 
 
 @router.post("", response_model=EquipmentResponse, status_code=status.HTTP_201_CREATED)
@@ -61,14 +88,44 @@ def create_equipment(
     db.add(item)
     db.commit()
     db.refresh(item)
-    return serialize_equipment(item)
+    return serialize_equipment(db, item)
 
 
 @router.get("/{equipment_id}", response_model=EquipmentResponse)
 def get_equipment(equipment_id: str, db: Session = Depends(get_db)) -> EquipmentResponse:
-    from fastapi import HTTPException
+    return serialize_equipment(db, get_equipment_or_404(db, equipment_id))
 
-    item = db.get(Equipment, equipment_id)
-    if item is None:
-        raise HTTPException(status_code=404, detail="装备不存在")
-    return serialize_equipment(item)
+
+@router.get("/{equipment_id}/reviews", response_model=list[EquipmentReviewResponse])
+def get_equipment_reviews(equipment_id: str, db: Session = Depends(get_db)) -> list[EquipmentReviewResponse]:
+    get_equipment_or_404(db, equipment_id)
+    reviews = db.scalars(
+        select(EquipmentReview)
+        .where(EquipmentReview.equipment_id == equipment_id)
+        .order_by(EquipmentReview.created_at.desc())
+    ).all()
+    return [serialize_review(review) for review in reviews]
+
+
+@router.post(
+    "/{equipment_id}/reviews",
+    response_model=EquipmentReviewResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def post_equipment_review(
+    equipment_id: str,
+    payload: EquipmentReviewCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> EquipmentReviewResponse:
+    get_equipment_or_404(db, equipment_id)
+    review = EquipmentReview(
+        equipment_id=equipment_id,
+        author_id=current_user.id,
+        rating=payload.rating,
+        content=payload.content,
+    )
+    db.add(review)
+    db.commit()
+    db.refresh(review)
+    return serialize_review(review)

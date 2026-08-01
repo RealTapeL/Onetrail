@@ -1,11 +1,12 @@
 import json
+from collections import Counter
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from route_content.models import HikingRoute, RouteReview, RouteTag
-from route_content.schemas import RouteCreate, RouteDetail, RouteSummary
+from route_content.schemas import ImpressionStat, RouteCreate, RouteDetail, RouteSummary
 
 
 def get_route_or_404(db: Session, route_id: str) -> HikingRoute:
@@ -19,7 +20,20 @@ def route_tags(db: Session, route_id: str) -> list[RouteTag]:
     return list(db.scalars(select(RouteTag).where(RouteTag.route_id == route_id).order_by(RouteTag.name)))
 
 
+def _review_stats(db: Session, route_id: str) -> tuple[float | None, int, list[ImpressionStat]]:
+    reviews = db.scalars(select(RouteReview).where(RouteReview.route_id == route_id)).all()
+    if not reviews:
+        return None, 0, []
+    average = round(sum(review.rating for review in reviews) / len(reviews), 1)
+    counter: Counter[str] = Counter()
+    for review in reviews:
+        counter.update(json.loads(review.impression_tags or "[]"))
+    stats = [ImpressionStat(tag=tag, count=count) for tag, count in counter.most_common()]
+    return average, len(reviews), stats
+
+
 def serialize_route_detail(db: Session, route: HikingRoute) -> RouteDetail:
+    average_rating, review_count, impression_stats = _review_stats(db, route.id)
     return RouteDetail(
         id=route.id,
         title=route.title,
@@ -31,8 +45,12 @@ def serialize_route_detail(db: Session, route: HikingRoute) -> RouteDetail:
         elevation_gain_m=route.elevation_gain_m,
         estimated_duration_min=route.estimated_duration_min,
         difficulty=route.difficulty,
+        suitable_for=route.suitable_for,
         video_url=route.video_url,
         tags=route_tags(db, route.id),
+        average_rating=average_rating,
+        review_count=review_count,
+        impression_stats=impression_stats,
     )
 
 
@@ -55,7 +73,13 @@ def list_routes(
 ) -> list[RouteSummary]:
     statement = select(HikingRoute).order_by(HikingRoute.created_at.desc())
     if query:
-        statement = statement.where(HikingRoute.title.contains(query))
+        statement = statement.where(
+            or_(
+                HikingRoute.title.contains(query),
+                HikingRoute.description.contains(query),
+                HikingRoute.region.contains(query),
+            )
+        )
     if region:
         statement = statement.where(HikingRoute.region == region)
     if difficulty:

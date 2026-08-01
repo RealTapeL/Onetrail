@@ -12,6 +12,7 @@ class RecommendationRequest(BaseModel):
     max_distance_km: float | None = Field(default=None, gt=0, le=300)
     max_elevation_gain_m: int | None = Field(default=None, ge=0, le=15000)
     max_duration_min: int | None = Field(default=None, gt=0, le=10080)
+    owned_equipment_ids: list[str] = Field(default_factory=list)
 
 
 class WeatherAssessment(BaseModel):
@@ -57,6 +58,7 @@ class RecommendedRoute(BaseModel):
     scene_tags: list[str] = Field(default_factory=list)
     score: float = Field(ge=0, le=100)
     reasons: list[str]
+    risk_notes: list[str] = Field(default_factory=list)
     transport_options: list[TransportOption] = Field(default_factory=list)
     supply_points: list[SupplyPoint] = Field(default_factory=list)
     equipment_suggestions: list[EquipmentSuggestion] = Field(default_factory=list)
@@ -69,6 +71,7 @@ class RecommendationResponse(BaseModel):
     weather: WeatherAssessment | None = None
     capability_samples: int = 0
     routes: list[RecommendedRoute]
+    alternates: list[RecommendedRoute] = Field(default_factory=list)
     notice: str | None = None
 
 

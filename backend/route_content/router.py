@@ -1,14 +1,21 @@
 import json
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from core.security import get_current_user
 from database.session import get_db
 from identity.models import User
-from route_content.models import RouteReview
-from route_content.schemas import ReviewCreate, ReviewResponse, RouteCreate, RouteDetail, RouteSummary
+from route_content.models import HikingRoute, RouteFavorite, RouteReview
+from route_content.schemas import (
+    FavoriteResponse,
+    ReviewCreate,
+    ReviewResponse,
+    RouteCreate,
+    RouteDetail,
+    RouteSummary,
+)
 from route_content.service import (
     create_route,
     get_route_or_404,
@@ -38,6 +45,20 @@ def post_route(
     db: Session = Depends(get_db),
 ) -> RouteDetail:
     return serialize_route_detail(db, create_route(db, current_user.id, payload))
+
+
+@router.get("/favorites/mine", response_model=list[RouteSummary])
+def get_my_favorites(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[RouteSummary]:
+    statement = (
+        select(HikingRoute)
+        .join(RouteFavorite, RouteFavorite.route_id == HikingRoute.id)
+        .where(RouteFavorite.user_id == current_user.id)
+        .order_by(RouteFavorite.created_at.desc())
+    )
+    return [RouteSummary.model_validate(route) for route in db.scalars(statement).all()]
 
 
 @router.get("/{route_id}", response_model=RouteDetail)
@@ -71,3 +92,45 @@ def post_review(
     db.commit()
     db.refresh(review)
     return serialize_review(review)
+
+
+@router.post("/{route_id}/favorite", response_model=FavoriteResponse, status_code=status.HTTP_201_CREATED)
+def post_favorite(
+    route_id: str,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> FavoriteResponse:
+    get_route_or_404(db, route_id)
+    favorite = db.scalar(
+        select(RouteFavorite).where(
+            RouteFavorite.route_id == route_id,
+            RouteFavorite.user_id == current_user.id,
+        )
+    )
+    if favorite is not None:
+        response.status_code = status.HTTP_200_OK
+        return FavoriteResponse(route_id=route_id, created_at=favorite.created_at)
+    favorite = RouteFavorite(route_id=route_id, user_id=current_user.id)
+    db.add(favorite)
+    db.commit()
+    db.refresh(favorite)
+    return FavoriteResponse(route_id=route_id, created_at=favorite.created_at)
+
+
+@router.delete("/{route_id}/favorite", status_code=status.HTTP_204_NO_CONTENT)
+def delete_favorite(
+    route_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    favorite = db.scalar(
+        select(RouteFavorite).where(
+            RouteFavorite.route_id == route_id,
+            RouteFavorite.user_id == current_user.id,
+        )
+    )
+    if favorite is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="尚未收藏该路线")
+    db.delete(favorite)
+    db.commit()

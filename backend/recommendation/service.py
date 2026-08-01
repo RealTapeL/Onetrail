@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from equipment.models import Equipment
 from hiking_history.service import CapabilityProfile, get_capability_profile
 from identity.models import HikingPreference
-from recommendation.providers import MapProvider, ProviderRequestError, WeatherProvider
+from recommendation.providers import MapProvider, ProviderRequestError, WeatherProvider, WeatherSnapshot
 from recommendation.schemas import (
     EquipmentSuggestion,
     RecommendedRoute,
@@ -97,12 +97,15 @@ def recommend(
                 scene_tags=[tag.name for tag in tags_by_route[route.id]],
                 score=score,
                 reasons=reasons + list(weather.caution_notes),
+                risk_notes=_risk_notes(tags_by_route[route.id], weather),
             )
         )
 
     results.sort(key=lambda result: result.score, reverse=True)
-    equipment = _equipment_suggestions(db, results, tags_by_route, request.budget_cny)
-    for result in results[:5]:
+    top_results = results[:5]
+    alternates = results[5:]
+    equipment = _equipment_suggestions(db, top_results, tags_by_route, request.budget_cny, set(request.owned_equipment_ids))
+    for result in top_results:
         route = route_by_id[result.route_id]
         try:
             result.transport_options = [
@@ -137,6 +140,8 @@ def recommend(
     notice = None if results else "没有满足当前限制的已发布路线。可调整距离、爬升或耗时限制，或先补充路线内容。"
     if not capability.samples:
         notice = _append_notice(notice, "暂无历史徒步记录，本次使用静态偏好和路线数据进行匹配。")
+    if request.group_size > 1:
+        notice = _append_notice(notice, "多人同行，请按队伍中经验最少的成员评估难度与节奏。")
 
     return RecommendationResponse(
         travel_date=request.travel_date,
@@ -144,7 +149,8 @@ def recommend(
         data_sources=sources,
         weather=weather_response,
         capability_samples=capability.samples,
-        routes=results,
+        routes=top_results,
+        alternates=alternates,
         notice=notice,
     )
 
@@ -252,6 +258,13 @@ def _fit_reason(name: str, value: float, unit: str, fit: float, reference: str) 
     return f"{name} {value:g}{unit}，明显高于{reference}"
 
 
+def _risk_notes(tags: list[RouteTag], weather: WeatherSnapshot) -> list[str]:
+    notes = [tag.safety_note for tag in tags if tag.category == "safety" and tag.safety_note]
+    if weather.mud_risk == "high":
+        notes.append("预报有降水，泥泞与湿滑风险升高，请谨慎评估涉水、碎石坡等路段。")
+    return notes
+
+
 def _haversine_km(latitude_a: float, longitude_a: float, latitude_b: float, longitude_b: float) -> float:
     earth_radius_km = 6371.0
     lat_delta = radians(latitude_b - latitude_a)
@@ -265,21 +278,26 @@ def _equipment_suggestions(
     results: list[RecommendedRoute],
     tags_by_route: dict[str, list[RouteTag]],
     budget_cny: float | None,
+    owned_equipment_ids: set[str],
 ) -> dict[str, list[EquipmentSuggestion]]:
     if not results:
         return {}
     items = db.scalars(select(Equipment).order_by(Equipment.created_at.desc())).all()
     suggestions: dict[str, list[EquipmentSuggestion]] = {}
-    for result in results[:5]:
+    for result in results:
         route_tags = {tag.name for tag in tags_by_route[result.route_id]}
         allowed_categories = {"backpack", "footwear"}
         if route_tags.intersection({"露营", "过夜"}):
             allowed_categories.update({"tent", "sleeping_bag"})
         selected: list[EquipmentSuggestion] = []
+        owned_matches = 0
         for item in items:
             if item.category not in allowed_categories:
                 continue
             if budget_cny is not None and item.price_cny is not None and item.price_cny > budget_cny:
+                continue
+            if item.id in owned_equipment_ids:
+                owned_matches += 1
                 continue
             scenarios = set(json.loads(item.suitable_scenarios or "[]"))
             reason = "根据路线距离、爬升和难度提供参考"
@@ -290,6 +308,8 @@ def _equipment_suggestions(
             selected.append(EquipmentSuggestion(equipment_id=item.id, name=item.name, category=item.category, reason=reason))
             if len(selected) >= 10:
                 break
+        if not selected and owned_matches:
+            result.reasons.append("你已有该路线所需的推荐装备。")
         suggestions[result.route_id] = selected
     return suggestions
 

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from database.base import Base
@@ -20,6 +20,7 @@ class HikingRoute(Base):
     elevation_gain_m: Mapped[int] = mapped_column(Integer)
     estimated_duration_min: Mapped[int] = mapped_column(Integer)
     difficulty: Mapped[str] = mapped_column(String(30), index=True)
+    suitable_for: Mapped[str | None] = mapped_column(String(200), nullable=True)
     video_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_by: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -44,4 +45,14 @@ class RouteReview(Base):
     rating: Mapped[int] = mapped_column(Integer)
     content: Mapped[str | None] = mapped_column(Text, nullable=True)
     impression_tags: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class RouteFavorite(Base):
+    __tablename__ = "route_favorites"
+    __table_args__ = (UniqueConstraint("route_id", "user_id", name="uq_route_favorite"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    route_id: Mapped[str] = mapped_column(ForeignKey("hiking_routes.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
