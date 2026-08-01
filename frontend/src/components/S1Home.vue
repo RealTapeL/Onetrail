@@ -1,117 +1,39 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+/** S1 首页 · 需求输入（桌面端，对齐设计稿 2:2）
+ *  表单为真实控件（与后端队友的联调分支一致），提交走 api/mock.postRecommendations
+ */
+import { reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import HudNav from './HudNav.vue'
-import { api } from '../api'
-import { store } from '../store'
+import { brandStats, questFormDefaults, postRecommendations } from '../api/mock'
 
-const emit = defineEmits(['nav'])
-
-// 体能等级 → 距离/爬升上限（传给推荐引擎做硬筛选）
-const FITNESS_LIMITS = {
-  1: { max_distance_km: 5, max_elevation_gain_m: 200 },
-  2: { max_distance_km: 8, max_elevation_gain_m: 400 },
-  3: { max_distance_km: 12, max_elevation_gain_m: 600 },
-  4: { max_distance_km: 16, max_elevation_gain_m: 900 },
-  5: { max_distance_km: 30, max_elevation_gain_m: 2000 }
-}
-
-const form = reactive({
-  date: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),
-  city: '杭州',
-  latitude: 30.25,
-  longitude: 120.13,
-  groupSize: 2,
-  budget: 500,
-  fitness: 3,
-  ownedGear: '登山鞋、背包',
-  interests: ['瀑布', '竹林']
-})
-const interestOptions = ['瀑布', '竹林', '古道', '云海']
-const stats = ref([
-  { num: '—', label: '条精选路线' },
-  { num: '—', label: '徒步者在用' },
-  { num: '—', label: '座城市覆盖' }
-])
-const submitting = ref(false)
-const errorMsg = ref('')
+const router = useRouter()
+const form = reactive(JSON.parse(JSON.stringify(questFormDefaults)))
 
 const questions = [
   { no: 'Q1', text: '这条路适不适合我？' },
   { no: 'Q2', text: '这条路值不值得去？' },
   { no: 'Q3', text: '怎么去、怎么走、带什么？' }
 ]
-
-onMounted(async () => {
-  try {
-    const data = await api('/meta/brand-stats', { auth: false })
-    stats.value = [
-      { num: String(data.routeCount), label: '条精选路线' },
-      { num: String(data.hikerCount), label: '徒步者在用' },
-      { num: String(data.cityCount), label: '座城市覆盖' }
-    ]
-  } catch { /* 保留占位 */ }
-})
-
-function toggleInterest(label) {
-  const i = form.interests.indexOf(label)
-  if (i >= 0) form.interests.splice(i, 1)
-  else form.interests.push(label)
+const interestOptions = ['瀑布', '竹林', '古道', '云海']
+const toggle = (tag) => {
+  const i = form.interests.indexOf(tag)
+  i >= 0 ? form.interests.splice(i, 1) : form.interests.push(tag)
 }
-
-function useCurrentPosition() {
-  if (!navigator.geolocation) return
-  navigator.geolocation.getCurrentPosition((pos) => {
-    form.latitude = +pos.coords.latitude.toFixed(5)
-    form.longitude = +pos.coords.longitude.toFixed(5)
-    form.city = '当前定位'
-  })
+const locate = () => {
+  form.location.useCurrentPosition = true
+  console.log('[mock] 定位 →', form.location.lat, form.location.lng)
 }
-
-async function submit() {
-  if (submitting.value) return
-  submitting.value = true
-  errorMsg.value = ''
-  try {
-    // 兴趣写入偏好画像，供推荐引擎做兴趣匹配
-    await api('/profile/preferences', { method: 'PUT', body: { interests: form.interests } }).catch(() => {})
-    // 已有装备按名称匹配装备目录，得到真实目录 id
-    const keywords = form.ownedGear.split(/[,，、\s]+/).filter(Boolean)
-    let ownedIds = []
-    if (keywords.length) {
-      const catalog = await api('/equipment', { auth: false }).catch(() => [])
-      ownedIds = catalog.filter((item) => keywords.some((k) => item.name.includes(k))).map((item) => item.id)
-    }
-    const limits = FITNESS_LIMITS[form.fitness]
-    const request = {
-      travel_date: form.date,
-      latitude: form.latitude,
-      longitude: form.longitude,
-      group_size: form.groupSize,
-      budget_cny: form.budget,
-      max_distance_km: limits.max_distance_km,
-      max_elevation_gain_m: limits.max_elevation_gain_m,
-      owned_equipment_ids: ownedIds
-    }
-    const response = await api('/recommendations/plan', { method: 'POST', body: request })
-    store.recommendation = {
-      request,
-      response,
-      summary: `${form.date} · ${form.city} · ${form.groupSize} 人 · ¥${form.budget} · 体能 Lv.${form.fitness}`
-    }
-    emit('nav', 's2')
-  } catch (err) {
-    errorMsg.value = err.message || '推荐生成失败，请稍后重试'
-  } finally {
-    submitting.value = false
-  }
+const submit = async () => {
+  await postRecommendations(form)
+  router.push('/plan/results')
 }
 </script>
 
 <template>
   <section class="screen">
-    <HudNav active="plan" @nav="emit('nav', $event)" />
+    <HudNav />
 
-    <!-- Hero 1440×490，pad 40/48/32/48，gap 40 -->
     <div class="hero">
       <div class="hero-left">
         <div class="kicker"><span class="k-sq" /><span class="k-en">HIKING ROUTE DECISION ENGINE</span></div>
@@ -134,14 +56,13 @@ async function submit() {
         </div>
 
         <div class="bstats">
-          <div v-for="s in stats" :key="s.label" class="bs">
+          <div v-for="s in brandStats" :key="s.label" class="bs">
             <div class="bs-num">{{ s.num }}</div>
             <div class="bs-label">{{ s.label }}</div>
           </div>
         </div>
       </div>
 
-      <!-- 像素山 420×280 -->
       <div class="pixel-art">
         <span class="px amber" style="left:62px; top:14px; width:32px; height:32px;" />
         <span class="px white" style="left:178px; top:22px;" />
@@ -156,7 +77,6 @@ async function submit() {
       </div>
     </div>
 
-    <!-- Quest Input Panel 1440×351，白底，pad 40，gap 24 -->
     <div class="quest">
       <div class="q-head">
         <div class="q-titles">
@@ -169,66 +89,58 @@ async function submit() {
       <div class="q-grid">
         <div class="field">
           <div class="f-label">出行日期 · DATE</div>
-          <input v-model="form.date" type="date" class="f-input" />
+          <input type="date" v-model="form.dateRange.start" class="f-input" />
         </div>
         <div class="field">
           <div class="f-label">目的地 · LOCATION</div>
-          <div class="f-loc">
-            <input v-model="form.city" type="text" class="f-input" placeholder="城市" />
-            <button class="f-mini" type="button" @click="useCurrentPosition">定位</button>
+          <div class="f-row">
+            <input v-model="form.location.city" class="f-input" placeholder="城市" />
+            <button class="locate" @click="locate">定位</button>
           </div>
-          <div class="f-coord">
-            <input v-model.number="form.latitude" type="number" step="0.00001" class="f-input half" placeholder="纬度" />
-            <input v-model.number="form.longitude" type="number" step="0.00001" class="f-input half" placeholder="经度" />
+          <div class="f-row">
+            <input v-model.number="form.location.lat" class="f-input half" />
+            <input v-model.number="form.location.lng" class="f-input half" />
           </div>
         </div>
         <div class="field">
           <div class="f-label">同行人数 · PARTY</div>
-          <input v-model.number="form.groupSize" type="number" min="1" max="50" class="f-input" />
+          <input type="number" min="1" v-model.number="form.party.adults" class="f-input" />
         </div>
         <div class="field">
           <div class="f-label">预算 · BUDGET（元/人）</div>
-          <input v-model.number="form.budget" type="number" min="0" class="f-input" />
+          <input type="number" v-model.number="form.budgetPerPerson.max" class="f-input" />
         </div>
       </div>
       <div class="q-grid">
         <div class="field">
           <div class="f-label">体能 · FITNESS</div>
-          <select v-model.number="form.fitness" class="f-input">
+          <select v-model.number="form.fitnessLevel" class="f-input">
             <option v-for="n in 5" :key="n" :value="n">Lv.{{ n }}</option>
           </select>
         </div>
         <div class="field">
           <div class="f-label">兴趣 · INTERESTS</div>
           <div class="f-chips">
-            <span v-for="c in interestOptions" :key="c" class="i-chip"
-                  :class="{ on: form.interests.includes(c) }"
-                  @click="toggleInterest(c)">{{ c }}</span>
+            <button v-for="t in interestOptions" :key="t" class="i-chip"
+                    :class="{ on: form.interests.includes(t) }" @click="toggle(t)">{{ t }}</button>
           </div>
         </div>
         <div class="field">
           <div class="f-label">已有装备 · MY GEAR</div>
-          <input v-model="form.ownedGear" type="text" class="f-input" placeholder="顿号分隔，如：登山鞋、背包" />
+          <input :value="form.ownedGear.join(' · ')" class="f-input"
+                 @input="form.ownedGear = $event.target.value.split(/[·,，、\s]+/).filter(Boolean)" />
         </div>
-        <button class="cta" :disabled="submitting" @click="submit">
-          <span class="cta-cn">{{ submitting ? '生成中…' : '开始生成路线' }}</span>
+        <button class="cta" @click="submit">
+          <span class="cta-cn">开始生成路线</span>
           <span class="cta-en">PRESS START</span>
         </button>
       </div>
-      <div v-if="errorMsg" class="q-error">{{ errorMsg }}</div>
     </div>
   </section>
 </template>
 
 <style scoped>
-/* Hero */
-.hero {
-  height: 490px;
-  padding: 40px 48px 32px;
-  display: flex;
-  align-items: center;
-  gap: 40px;
-}
+.hero { height: 490px; padding: 40px 48px 32px; display: flex; align-items: center; gap: 40px; }
 .hero-left { width: 884px; display: flex; flex-direction: column; gap: 20px; }
 .kicker { display: flex; align-items: center; gap: 10px; }
 .k-sq { width: 10px; height: 10px; background: var(--lime); }
@@ -244,12 +156,7 @@ async function submit() {
 .slogan-en { font-family: var(--silk); font-size: 10px; color: var(--lime); }
 
 .qs { display: flex; gap: 12px; }
-.q-chip {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: var(--panel);
-  border: 1px solid var(--lime);
-  padding: 9px 14px;
-}
+.q-chip { display: inline-flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--lime); padding: 9px 14px; }
 .q-no { font-family: var(--silk); font-weight: 700; font-size: 11px; color: var(--lime); }
 .q-tx { font-size: 13px; font-weight: 500; color: var(--t1); }
 
@@ -258,22 +165,13 @@ async function submit() {
 .bs-num { font-family: var(--vt); font-size: 28px; color: var(--lime); line-height: 1; }
 .bs-label { font-size: 12px; color: var(--t2); }
 
-/* 像素山 */
 .pixel-art { position: relative; width: 420px; height: 280px; flex: none; }
 .px { position: absolute; width: 14px; height: 14px; background: #FFFFFF; }
 .px.amber { background: var(--amber); }
 .px.lime-w { width: 35px; height: 14px; background: var(--lime); }
 .mtn { position: absolute; left: 0; bottom: 0; width: 420px; height: 210px; }
 
-/* Quest Panel */
-.quest {
-  min-height: 351px;
-  background: #FFFFFF;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
+.quest { height: 351px; background: #FFFFFF; padding: 40px; display: flex; flex-direction: column; gap: 24px; }
 .q-head { display: flex; align-items: center; justify-content: space-between; }
 .q-titles { display: flex; flex-direction: column; gap: 6px; }
 .q-cn { font-size: 24px; font-weight: 900; color: var(--ink); }
@@ -285,33 +183,28 @@ async function submit() {
   background: var(--paper);
   border: 1px solid var(--ink);
   box-shadow: var(--sh-ink-3);
-  padding: 18px;
+  padding: 14px 14px 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   min-height: 86px;
 }
 .f-label { font-size: 12px; font-weight: 500; color: var(--t3); }
-.f-value { font-size: 16px; font-weight: 700; color: var(--ink); }
 .f-input {
-  font-size: 16px; font-weight: 700; color: var(--ink);
-  background: #FFFFFF; border: 1px solid var(--ink);
-  padding: 8px 10px; width: 100%;
+  font-size: 15px; font-weight: 700; color: var(--ink);
+  border: 1px solid #D8D8D0; background: #FFFFFF;
+  padding: 6px 8px; width: 100%;
 }
-.f-input.half { width: 48%; font-size: 13px; }
-.f-loc { display: flex; gap: 8px; }
-.f-coord { display: flex; gap: 8px; justify-content: space-between; }
-.f-mini {
-  background: var(--ink); color: var(--lime);
-  font-size: 12px; font-weight: 700; padding: 0 12px; flex: none;
+.f-input:focus { outline: none; border-color: var(--ink); }
+.f-input.half { width: 48%; }
+.f-row { display: flex; align-items: center; gap: 8px; }
+.f-row .f-input { flex: 1; }
+.locate {
+  flex: none; background: var(--ink); color: var(--lime);
+  font-size: 12px; font-weight: 700; padding: 7px 12px;
 }
 .f-chips { display: flex; gap: 8px; }
-.i-chip {
-  font-size: 12px; font-weight: 500; color: var(--ink);
-  background: #FFFFFF; border: 1px solid var(--ink);
-  padding: 5px 10px;
-  cursor: pointer;
-}
+.i-chip { font-size: 12px; font-weight: 500; color: var(--ink); background: #FFFFFF; border: 1px solid var(--ink); padding: 5px 10px; }
 .i-chip.on { background: var(--ink); color: var(--lime); font-weight: 700; border-color: var(--ink); }
 
 .cta {
@@ -328,12 +221,4 @@ async function submit() {
 .cta-cn { font-size: 20px; font-weight: 900; color: var(--ink); }
 .cta-en { font-family: var(--p8); font-size: 10px; color: var(--ink); }
 .cta:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #0A0A0A; }
-.cta:disabled { opacity: 0.6; cursor: wait; }
-.q-error {
-  background: var(--red-bg);
-  border: 1px solid var(--red-line);
-  color: var(--red);
-  font-size: 13px;
-  padding: 10px 14px;
-}
 </style>
