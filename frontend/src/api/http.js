@@ -5,7 +5,8 @@
 import { reactive } from 'vue'
 import { reportError } from './logger'
 
-const BASE = '/api/v1'
+// 本地开发走 vite 代理（/api/v1）；部署到 Vercel 时用 VITE_API_BASE 指向后端公网地址
+const BASE = import.meta.env.VITE_API_BASE || '/api/v1'
 const TOKEN_KEY = 'ot_token'
 
 // 上报豁免：日志端点自身失败不再上报，避免循环
