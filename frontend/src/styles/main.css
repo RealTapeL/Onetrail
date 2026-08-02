@@ -37,12 +37,23 @@
   --head-h: 120px;        /* 屏头高 */
   --content-px: 48px;     /* 内容左右留白 */
   --card-gap: 24px;       /* 卡片间距 */
+  /* 8px 基准间距阶梯（布局统一用这组值） */
+  --sp-1: 8px;
+  --sp-2: 16px;
+  --sp-3: 24px;
+  --sp-4: 32px;
+  --sp-6: 48px;
   /* 安卓/iOS 安全区（状态栏/手势条），桌面端为 0 */
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* 窄屏桌面（平板/小笔电）：收紧留白与屏头高度，避免内容被挤出 */
+@media (max-width: 1200px) {
+  :root { --content-px: 24px; --head-h: 96px; }
+}
 
 html, body, #app { min-height: 100%; }
 html, body {
@@ -57,12 +68,12 @@ body {
 button { font-family: inherit; border: none; background: none; cursor: pointer; padding: 0; }
 input { font-family: inherit; border: none; outline: none; background: none; }
 
-/* ============== 屏容器：严格 1440×960，溢出裁切 ============== */
+/* ============== 屏容器：版心最大 1440，随视口收缩，纵向自然滚动 ============== */
 .screen {
-  width: 1440px;
-  height: 960px;
+  width: 100%;
+  max-width: 1440px;
+  min-height: 100vh;
   background: var(--bg);
-  overflow: hidden;
   position: relative;
   flex: none;
 }

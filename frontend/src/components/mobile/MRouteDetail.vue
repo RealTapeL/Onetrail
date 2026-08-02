@@ -2,11 +2,12 @@
 /** M5 路线详情（下层页，对齐设计稿 6:25）
  *  数据来自真实后端 GET /api/v1/routes/{id}
  */
-import { ref, watchEffect } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import BackHeader from './BackHeader.vue'
 import { fetchRouteDetail, IMPRESSION_OPTIONS, setFavorite } from '../../api/index'
 import { useRouteReview } from '../../composables/useRouteReview'
+import { buildRatingPanel } from '../../composables/ratingPanel'
 
 const route = useRoute()
 const routeDetail = ref(null)
@@ -49,6 +50,9 @@ const toggleFavorite = async () => {
 // ---- 写评价 / 气质投票 ----
 const { reviewRating, reviewTags, reviewContent, reviewSubmitting, reviewMsg, toggleTag, submitReview } =
   useRouteReview(() => route.params.id, { onSubmitted: () => load(route.params.id) })
+
+// ---- 评分面板（与桌面 S3 同一套计算） ----
+const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
 </script>
 
 <template>
@@ -76,11 +80,35 @@ const { reviewRating, reviewTags, reviewContent, reviewSubmitting, reviewMsg, to
     </div>
 
     <div class="m-body">
+      <div class="d-title">{{ routeDetail.name }}</div>
+
       <section class="stats">
         <div v-for="s in routeDetail.stats" :key="s.label" class="stat">
           <div class="s-label">{{ s.label }}</div>
           <div class="s-value">{{ s.value }}</div>
         </div>
+      </section>
+
+      <!-- 评分面板：大分数 + 星级 + 分布条 -->
+      <section class="rating">
+        <template v-if="ratingPanel">
+          <div class="rp-left">
+            <div class="rp-label">社区评分 · RATING</div>
+            <div class="rp-score">{{ ratingPanel.avg }}</div>
+            <div class="rp-stars">
+              <span v-for="n in 5" :key="n" :class="{ on: n <= ratingPanel.fullStars }">★</span>
+            </div>
+          </div>
+          <div class="rp-right">
+            <div v-for="d in ratingPanel.dist" :key="d.star" class="rp-row">
+              <span class="rp-star-label">{{ d.star }} 星</span>
+              <span class="rp-track"><span class="rp-fill" :style="{ width: d.percent + '%' }" /></span>
+              <span class="rp-count">{{ d.count }}</span>
+            </div>
+            <div class="rp-total">{{ ratingPanel.total }} 条真实评价</div>
+          </div>
+        </template>
+        <div v-else class="p-dim">暂无评分 —— 走完这条路线后欢迎留下第一条评价</div>
       </section>
 
       <section class="panel">
@@ -163,6 +191,24 @@ const { reviewRating, reviewTags, reviewContent, reviewSubmitting, reviewMsg, to
   background: var(--panel); border: 1px solid var(--line); padding: 14px;
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
 }
+.d-title { font-size: 20px; font-weight: 900; color: #FFF; line-height: 1.3; }
+/* ---- 评分面板 ---- */
+.rating {
+  background: var(--panel); border: 1px solid var(--line); padding: 14px;
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+}
+.rp-left { display: flex; flex-direction: column; gap: 4px; flex: none; }
+.rp-label { font-family: var(--silk); font-size: 8px; color: var(--t2); }
+.rp-score { font-family: var(--vt); font-size: 44px; color: var(--lime); line-height: 1; }
+.rp-stars { font-size: 14px; color: var(--t4); letter-spacing: 1px; }
+.rp-stars .on { color: var(--amber); }
+.rp-right { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 5px; }
+.rp-row { display: flex; align-items: center; gap: 8px; }
+.rp-star-label { font-size: 10px; color: var(--t2); width: 30px; flex: none; }
+.rp-track { flex: 1; height: 6px; background: var(--track); }
+.rp-fill { display: block; height: 100%; background: var(--amber); }
+.rp-count { font-size: 10px; color: var(--t3); width: 16px; text-align: right; flex: none; }
+.rp-total { font-size: 9px; color: var(--t3); text-align: right; }
 .s-label { font-family: var(--silk); font-size: 8px; color: var(--t2); }
 .s-value { font-family: var(--vt); font-size: 22px; color: var(--lime); line-height: 1; margin-top: 2px; }
 .panel { background: var(--panel); border: 1px solid var(--line); padding: 14px; display: flex; flex-direction: column; gap: 8px; }

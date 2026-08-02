@@ -53,12 +53,13 @@ const menus = [
 
 <style scoped>
 .hud-nav {
-  width: 1440px;
+  width: 100%;
   height: 72px;
   padding: 0 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   background: var(--bg);
   flex: none;
 }
@@ -68,7 +69,7 @@ const menus = [
 .logo-cn { font-size: 20px; font-weight: 900; color: #FFFFFF; }
 .logo-en { font-family: var(--p8); font-size: 11px; color: var(--lime); }
 
-.menu { display: flex; align-items: center; gap: 32px; }
+.menu { display: flex; align-items: center; gap: 32px; flex: none; }
 .mi { font-size: 14px; font-weight: 500; color: var(--t2); text-decoration: none; }
 .mi.on { color: var(--lime); font-weight: 700; }
 .mi:hover { color: var(--t1); }
@@ -98,4 +99,15 @@ const menus = [
 }
 .dot { width: 8px; height: 8px; background: var(--lime); flex: none; }
 .dot.off { background: var(--t4); }
+
+/* 小屏（如移动端进发布路线页）：收缩菜单间距，隐藏英文标与用户 chip 防溢出 */
+@media (max-width: 860px) {
+  .hud-nav { padding: 0 16px; }
+  .menu { gap: 16px; }
+  .logo-en, .user { display: none; }
+}
+@media (max-width: 520px) {
+  .menu { gap: 10px; }
+  .mi { font-size: 12px; }
+}
 </style>

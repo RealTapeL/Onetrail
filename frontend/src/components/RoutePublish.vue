@@ -179,8 +179,8 @@ const submit = async () => {
 <style scoped>
 .screen { min-height: 100vh; background: var(--bg); }
 .screen-head {
-  padding: 24px 48px 0;
-  display: flex; align-items: center; justify-content: space-between;
+  padding: 24px var(--content-px) 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
 }
 .sh-title-cn { font-size: 22px; font-weight: 900; color: #FFF; }
 .sh-title-en { font-family: var(--p8); font-size: 10px; color: var(--lime); margin-top: 4px; }
@@ -214,10 +214,10 @@ const submit = async () => {
   padding: 0 14px; font-size: 12px; font-weight: 700; cursor: pointer;
 }
 .geo-result { font-size: 11px; color: var(--lime); }
-.tag-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.tag-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
 .tag-name { width: 110px; flex: none; }
 .tag-cat { width: 84px; flex: none; }
-.tag-note { flex: 1; }
+.tag-note { flex: 1; min-width: 140px; }
 .tag-del {
   flex: none; width: 34px; background: none; border: 1px solid var(--line);
   color: var(--t3); font-size: 16px; cursor: pointer;

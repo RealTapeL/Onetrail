@@ -174,14 +174,14 @@ const submit = async () => {
 
 <style scoped>
 .home-body {
-  height: calc(960px - var(--nav-h));
+  min-height: calc(100vh - var(--nav-h));
   padding: 32px var(--content-px) 36px;
   display: flex;
   gap: 40px;
 }
 
 /* ---- 左：品牌区 ---- */
-.brand { width: 508px; flex: none; display: flex; flex-direction: column; gap: 18px; }
+.brand { width: 40%; min-width: 340px; flex: none; display: flex; flex-direction: column; gap: 18px; }
 .kicker { display: flex; align-items: center; gap: 10px; }
 .k-sq { width: 10px; height: 10px; background: var(--lime); }
 .k-en { font-family: var(--silk); font-size: 12px; color: var(--lime); }
@@ -205,11 +205,11 @@ const submit = async () => {
 .q-no { font-family: var(--silk); font-weight: 700; font-size: 11px; color: var(--lime); }
 .q-tx { font-size: 13px; font-weight: 500; color: var(--t1); }
 
-.pixel-art { position: relative; width: 420px; height: 240px; flex: none; margin-top: auto; }
+.pixel-art { position: relative; width: 100%; max-width: 420px; height: 240px; flex: none; margin-top: auto; }
 .px { position: absolute; width: 14px; height: 14px; background: #FFFFFF; }
 .px.amber { background: var(--amber); }
 .px.lime-w { width: 35px; height: 14px; background: var(--lime); }
-.mtn { position: absolute; left: 0; bottom: 0; width: 420px; height: 210px; }
+.mtn { position: absolute; left: 0; bottom: 0; width: 100%; height: 210px; }
 
 /* ---- 右：需求输入卡 ---- */
 .quest {
@@ -286,5 +286,12 @@ const submit = async () => {
   color: var(--red);
   font-size: 13px;
   padding: 10px 14px;
+}
+
+/* 小宽度桌面：品牌区与表单上下堆叠，避免挤压错位 */
+@media (max-width: 1080px) {
+  .home-body { flex-direction: column; }
+  .brand { width: 100%; min-width: 0; }
+  .pixel-art { display: none; }
 }
 </style>

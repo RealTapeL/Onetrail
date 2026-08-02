@@ -92,13 +92,12 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.tabs { height: 63px; padding: 0 48px; display: flex; gap: 12px; align-items: flex-start; }
+.tabs { padding: 0 var(--content-px) 16px; display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
 .tab { background: var(--panel); color: var(--t1); font-size: 13px; font-weight: 500; padding: 11px 16px; }
 .tab.on { background: var(--lime); color: var(--ink); font-weight: 700; }
 
-.compare { min-height: 416px; padding: 0 var(--content-px); display: flex; gap: var(--card-gap); }
+.compare { padding: 0 var(--content-px); display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--card-gap); align-items: stretch; }
 .gc {
-  width: 432px;
   background: #FFFFFF;
   border: 2px solid var(--ink);
   box-shadow: var(--sh-white-4);
@@ -108,33 +107,43 @@ onMounted(async () => {
   gap: 12px;
 }
 .gc.best { box-shadow: var(--sh-lime-4); }
-.gc-img { width: 100%; height: 160px; object-fit: cover; display: block; background: #F0F0F0; }
+.gc-img { width: 100%; height: 160px; object-fit: contain; display: block; background: #F0F0F0; }
 .gc-badge { align-self: flex-start; background: var(--lime); color: var(--ink); font-size: 11px; font-weight: 700; padding: 6px 10px; }
 .gc-name { font-size: 16px; font-weight: 700; color: var(--ink); }
-.gc-specs { font-size: 13px; color: var(--ink2); line-height: 1.9; }
+.gc-specs { font-size: 13px; color: var(--ink2); line-height: 1.9; flex: 1; }
 .gc-link { font-size: 12px; font-weight: 700; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
-.gap-sec { min-height: 212px; padding: 16px 48px 0; }
-.gap-panel { min-height: 180px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-.gap-row { display: flex; gap: 16px; }
-.gap-card { width: 424px; height: 104px; background: var(--bg); border: 1px solid var(--line); padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.gap-sec { padding: 24px var(--content-px) 0; }
+.gap-panel { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.gap-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.gap-card { background: var(--bg); border: 1px solid var(--line); padding: 16px; display: flex; flex-direction: column; gap: 6px; }
 .gap-name { font-size: 13px; font-weight: 700; color: var(--t1); }
 .gap-meta { font-size: 12px; color: var(--t2); }
 .gap-price { font-family: var(--vt); font-size: 24px; color: var(--lime); line-height: 1; margin-top: auto; }
 
-.review-sec { height: 79px; padding: 16px 48px 0; }
-.review-bar { height: 47px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; }
-.rv-left { display: flex; align-items: center; gap: 14px; }
+.review-sec { padding: 24px var(--content-px) 0; }
+.review-bar { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.rv-left { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .rv-label { font-family: var(--silk); font-weight: 700; font-size: 11px; color: var(--lime); }
 .rv-quote { font-size: 13px; font-weight: 500; color: var(--t1); }
 .rv-count { font-size: 12px; color: var(--t2); }
 
-.note-sec { height: 85px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--t2); }
+.note-sec { padding: 24px var(--content-px) 32px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--t2); text-align: center; }
 
 .empty {
-  margin: 24px 48px;
+  margin: 24px var(--content-px);
   padding: 40px;
   font-size: 14px;
   color: var(--t1);
+}
+
+/* 窄屏桌面：三卡 → 两卡/单卡 */
+@media (max-width: 1200px) {
+  .compare { grid-template-columns: repeat(2, 1fr); }
+  .gap-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .compare { grid-template-columns: 1fr; }
+  .gap-row { grid-template-columns: 1fr; }
 }
 </style>

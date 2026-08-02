@@ -2,11 +2,12 @@
 /** S3 路线详情（桌面端，对齐设计稿 2:178）
  *  数据来自真实后端 GET /api/v1/routes/{id}（含评价、气质投票、评分聚合）
  */
-import { ref, watchEffect } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import HudNav from './HudNav.vue'
 import { fetchRouteDetail, IMPRESSION_OPTIONS, setFavorite } from '../api/index'
 import { useRouteReview } from '../composables/useRouteReview'
+import { buildRatingPanel } from '../composables/ratingPanel'
 
 const route = useRoute()
 const routeDetail = ref(null)
@@ -51,6 +52,9 @@ const { reviewRating, reviewTags, reviewContent, reviewSubmitting, reviewMsg, to
     successText: '评价已提交，感谢分享',
     onSubmitted: () => load(route.params.id)
   })
+
+// ---- 评分面板（参考豆瓣/香水时代详情页）：大分数 + 星级 + 分布条，纯展示计算 ----
+const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
 </script>
 
 <template>
@@ -86,6 +90,28 @@ const { reviewRating, reviewTags, reviewContent, reviewSubmitting, reviewMsg, to
               <div class="stat-label">{{ s.label }}</div>
               <div class="stat-value">{{ s.value }}</div>
             </div>
+          </div>
+
+          <!-- 评分面板：大分数 + 星级 + 分布条（对齐主流详情页结构） -->
+          <div class="rating-panel panel-d">
+            <template v-if="ratingPanel">
+              <div class="rp-left">
+                <div class="rp-label">社区评分 · RATING</div>
+                <div class="rp-score">{{ ratingPanel.avg }}</div>
+                <div class="rp-stars">
+                  <span v-for="n in 5" :key="n" :class="{ on: n <= ratingPanel.fullStars }">★</span>
+                </div>
+              </div>
+              <div class="rp-right">
+                <div v-for="d in ratingPanel.dist" :key="d.star" class="rp-row">
+                  <span class="rp-star-label">{{ d.star }} 星</span>
+                  <span class="rp-track"><span class="rp-fill" :style="{ width: d.percent + '%' }" /></span>
+                  <span class="rp-count">{{ d.count }}</span>
+                </div>
+                <div class="rp-total">{{ ratingPanel.total }} 条真实评价</div>
+              </div>
+            </template>
+            <div v-else class="rp-empty">暂无评分 —— 走完这条路线后欢迎留下第一条评价</div>
           </div>
 
           <div class="terrain panel-d">
@@ -173,10 +199,10 @@ const { reviewRating, reviewTags, reviewContent, reviewSubmitting, reviewMsg, to
 }
 .share-btn:hover { background: var(--lime); color: var(--ink); }
 .share-msg { font-size: 11px; color: var(--lime); }
-.main-row { min-height: 768px; padding: 0 48px; display: flex; gap: 24px; align-items: flex-start; }
-.left-col { width: 904px; display: flex; flex-direction: column; gap: 20px; }
+.main-row { padding: 0 var(--content-px) 40px; display: flex; gap: 24px; align-items: flex-start; }
+.left-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
 
-.preview { position: relative; width: 904px; height: 300px; flex: none; }
+.preview { position: relative; width: 100%; height: 300px; flex: none; }
 .preview-img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .video-link {
   position: absolute;
@@ -192,10 +218,26 @@ const { reviewRating, reviewTags, reviewContent, reviewSubmitting, reviewMsg, to
 }
 .video-link:hover { background: var(--lime); color: var(--ink); }
 
-.stats-bar { height: 91px; display: flex; align-items: center; gap: 24px; padding: 0 20px; flex: none; }
-.stat { width: 198px; display: flex; flex-direction: column; gap: 6px; }
+.stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 18px 20px; flex: none; }
+.stat { display: flex; flex-direction: column; gap: 6px; }
 .stat-label { font-family: var(--silk); font-size: 10px; color: var(--t2); }
 .stat-value { font-family: var(--vt); font-size: 32px; color: var(--lime); line-height: 1; }
+
+/* ---- 评分面板 ---- */
+.rating-panel { padding: 20px; display: flex; gap: 32px; align-items: center; flex-wrap: wrap; }
+.rp-left { display: flex; flex-direction: column; gap: 6px; flex: none; }
+.rp-label { font-family: var(--silk); font-size: 10px; color: var(--t2); }
+.rp-score { font-family: var(--vt); font-size: 56px; color: var(--lime); line-height: 1; }
+.rp-stars { font-size: 18px; color: var(--t4); letter-spacing: 2px; }
+.rp-stars .on { color: var(--amber); }
+.rp-right { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 6px; }
+.rp-row { display: flex; align-items: center; gap: 10px; }
+.rp-star-label { font-size: 11px; color: var(--t2); width: 34px; flex: none; }
+.rp-track { flex: 1; height: 8px; background: var(--track); }
+.rp-fill { display: block; height: 100%; background: var(--amber); }
+.rp-count { font-size: 11px; color: var(--t3); width: 20px; text-align: right; flex: none; }
+.rp-total { font-size: 11px; color: var(--t3); text-align: right; }
+.rp-empty { font-size: 13px; color: var(--t2); }
 
 .terrain { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; flex: none; }
 .t-chips { display: flex; gap: 10px; }
@@ -227,21 +269,22 @@ const { reviewRating, reviewTags, reviewContent, reviewSubmitting, reviewMsg, to
 .wr-submit:disabled { opacity: 0.6; }
 
 .rail {
-  width: 416px;
-  min-height: 728px;
+  width: 360px;
+  flex: none;
+  position: sticky;
+  top: 24px;
   background: #FFFFFF;
   border: 2px solid var(--ink);
   box-shadow: var(--sh-lime-6);
-  padding: 28px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 20px;
+  gap: 24px;
 }
 .rail-title { font-size: 16px; font-weight: 900; color: var(--ink); }
 .vote-g { display: flex; flex-direction: column; gap: 10px; }
 .vote-label { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 6px; }
-.vote-track { width: 360px; height: 10px; background: var(--track); }
+.vote-track { width: 100%; height: 10px; background: var(--track); }
 .vote-fill { height: 100%; background: var(--lime); }
 .vote-fill.amber { background: var(--amber); }
 
@@ -255,13 +298,20 @@ const { reviewRating, reviewTags, reviewContent, reviewSubmitting, reviewMsg, to
 .v-sub { font-size: 11px; color: var(--t2); }
 
 .rail-cta { display: flex; gap: 12px; }
-.cta-main { width: 280px; height: 44px; background: var(--lime); border: 2px solid var(--ink); font-size: 14px; font-weight: 700; color: var(--ink); }
-.cta-sub { width: 68px; height: 44px; background: #FFFFFF; border: 2px solid var(--ink); font-size: 14px; font-weight: 700; color: var(--ink); }
+.cta-main { flex: 1; height: 44px; background: var(--lime); border: 2px solid var(--ink); font-size: 14px; font-weight: 700; color: var(--ink); }
+.cta-sub { width: 68px; flex: none; height: 44px; background: #FFFFFF; border: 2px solid var(--ink); font-size: 14px; font-weight: 700; color: var(--ink); }
 
 .empty {
-  margin: 24px 48px;
+  margin: 24px var(--content-px);
   padding: 40px;
   font-size: 14px;
   color: var(--t1);
+}
+
+/* 窄屏桌面：右栏取消吸顶并与主列上下堆叠 */
+@media (max-width: 1100px) {
+  .main-row { flex-direction: column; }
+  .rail { width: 100%; position: static; }
+  .left-col { width: 100%; }
 }
 </style>

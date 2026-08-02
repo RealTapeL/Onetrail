@@ -136,7 +136,7 @@ const submit = async () => {
 .ctl { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 13px; font-weight: 700; color: var(--ink); }
 .in {
   width: 100%;
-  max-width: 170px;
+  max-width: 220px;
   min-width: 0;
   font-size: 13px; font-weight: 700; color: var(--ink);
   border: none; border-bottom: 1px solid #D8D8D0; background: none;

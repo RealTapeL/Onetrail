@@ -85,9 +85,8 @@ const recommendation = computed(() => state.recommendation)
 </template>
 
 <style scoped>
-.cards { min-height: 505px; padding: 0 48px; display: flex; gap: 24px; }
+.cards { padding: 0 var(--content-px); display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--card-gap); align-items: stretch; }
 .rc {
-  width: 432px;
   background: #FFFFFF;
   border: 2px solid var(--ink);
   box-shadow: var(--sh-lime-6);
@@ -97,7 +96,7 @@ const recommendation = computed(() => state.recommendation)
   gap: 14px;
   cursor: pointer;
 }
-.rc-photo { width: 384px; height: 140px; object-fit: cover; display: block; }
+.rc-photo { width: 100%; height: 140px; object-fit: cover; display: block; }
 .rc-top { display: flex; align-items: flex-end; justify-content: space-between; height: 40px; }
 .rc-rank { background: var(--panel); padding: 6px 10px; font-family: var(--p8); font-size: 10px; color: var(--lime); }
 .rc-rank.hot { background: var(--lime); color: var(--ink); }
@@ -107,23 +106,24 @@ const recommendation = computed(() => state.recommendation)
 .rc-name { font-size: 20px; font-weight: 900; color: var(--ink); }
 .rc-meta { font-size: 12px; font-weight: 500; color: var(--t3); }
 .rc-why-label { font-size: 12px; font-weight: 700; color: var(--ink); }
-.rc-bullets { list-style: none; font-size: 13px; color: var(--ink2); line-height: 1.8; }
+.rc-bullets { list-style: none; font-size: 13px; color: var(--ink2); line-height: 1.8; flex: 1; }
 .rc-risk { background: var(--red-bg); border: 1px solid var(--red-line); color: var(--red); font-size: 12px; font-weight: 500; padding: 8px 10px; }
 .rc-tags { font-size: 12px; font-weight: 500; color: var(--t3); }
 
-.alt-sec { min-height: 246px; padding: 34px 48px 0; }
-.alt-panel { min-height: 178px; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
-.alt-head { display: flex; align-items: center; justify-content: space-between; }
+.alt-sec { padding: 34px var(--content-px) 0; }
+.alt-sec:last-child { padding-bottom: 40px; }
+.alt-panel { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.alt-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .alt-note { font-size: 12px; color: var(--t2); }
-.alt-row { display: flex; align-items: center; gap: 16px; height: 40px; cursor: pointer; }
+.alt-row { display: flex; align-items: center; gap: 16px; min-height: 40px; cursor: pointer; }
 .alt-thumb { width: 40px; height: 40px; object-fit: cover; flex: none; }
-.alt-name { font-size: 14px; font-weight: 700; color: var(--t1); }
+.alt-name { font-size: 14px; font-weight: 700; color: var(--t1); flex: none; }
 .alt-meta { font-size: 12px; color: var(--t2); }
-.alt-view { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--lime); }
-.spot-row { height: auto; min-height: 32px; cursor: default; }
+.alt-view { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--lime); flex: none; }
+.spot-row { cursor: default; }
 
 .empty {
-  margin: 24px 48px;
+  margin: 24px var(--content-px);
   padding: 40px;
   font-size: 14px;
   color: var(--t1);
@@ -133,10 +133,18 @@ const recommendation = computed(() => state.recommendation)
 }
 .empty-btn { background: var(--lime); color: var(--ink); font-weight: 700; padding: 8px 16px; }
 .notice {
-  margin: 0 48px 16px;
+  margin: 0 var(--content-px) 16px;
   padding: 10px 14px;
   border: 1px solid var(--amber);
   color: var(--amber);
   font-size: 13px;
+}
+
+/* 窄屏桌面：三卡 → 两卡 → 单卡 */
+@media (max-width: 1200px) {
+  .cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .cards { grid-template-columns: 1fr; }
 }
 </style>

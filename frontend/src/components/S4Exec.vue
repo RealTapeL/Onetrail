@@ -50,7 +50,7 @@ const { checkinRating, checkinSubmitting, checkinMsg, checkin } = useCheckin()
 
     <template v-else>
       <div class="cols">
-        <div class="col panel-d" style="min-height:295px;">
+        <div class="col panel-d">
           <div class="ptitle">大交通与接驳 · TRANSIT</div>
           <div v-for="t in plan.transit" :key="t.line" class="tr-row">
             <svg class="tr-icon" viewBox="0 0 20 20" v-html="transitIcons[t.type]" />
@@ -64,7 +64,7 @@ const { checkinRating, checkinSubmitting, checkinMsg, checkin } = useCheckin()
           <div class="col-tip">{{ plan.transitTip }}</div>
         </div>
 
-        <div class="col panel-d" style="min-height:307px;">
+        <div class="col panel-d">
           <div class="ptitle">时间安排 · TIMELINE</div>
           <div v-for="t in plan.timeline" :key="t.time" class="tl-row">
             <span class="tl-time">{{ t.time }}</span>
@@ -74,7 +74,7 @@ const { checkinRating, checkinSubmitting, checkinMsg, checkin } = useCheckin()
           <div class="col-note">{{ plan.timelineNote }}</div>
         </div>
 
-        <div class="col panel-d" style="min-height:412px;">
+        <div class="col panel-d">
           <div class="ptitle">沿途补给与装备 · SUPPLY &amp; GEAR</div>
           <div class="supply">{{ plan.supplyText }}</div>
           <div class="gear-label">建议装备清单 · CHECKLIST</div>
@@ -125,8 +125,8 @@ const { checkinRating, checkinSubmitting, checkinMsg, checkin } = useCheckin()
 </template>
 
 <style scoped>
-.cols { min-height: 412px; padding: 0 48px; display: flex; gap: 24px; align-items: flex-start; }
-.col { width: 432px; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+.cols { padding: 0 var(--content-px); display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--card-gap); align-items: stretch; }
+.col { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
 
 .tr-row { display: flex; gap: 12px; align-items: flex-start; }
 .tr-icon { width: 20px; height: 20px; fill: var(--lime); flex: none; margin-top: 10px; }
@@ -153,13 +153,13 @@ const { checkinRating, checkinSubmitting, checkinMsg, checkin } = useCheckin()
 .gk-text.dim { color: var(--t2); }
 .gap-link { font-size: 12px; font-weight: 700; color: var(--lime); text-align: left; padding: 0; }
 
-.elev-sec { min-height: 229px; padding: 12px 48px 0; }
-.elev { min-height: 217px; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.elev-sec { padding: 24px var(--content-px) 0; }
+.elev { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
 .chart { position: relative; height: 110px; }
 .chart svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .elev-cap { font-size: 12px; color: var(--t2); }
 
-.actions { height: 83px; padding: 20px 48px 0; display: flex; gap: 16px; align-items: center; }
+.actions { padding: 24px var(--content-px) 40px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 .btn { height: 43px; padding: 0 18px; font-size: 13px; font-weight: 700; }
 .btn.white { background: #FFFFFF; color: var(--ink); }
 .btn.lime { background: var(--lime); border: 2px solid var(--ink); color: var(--ink); }
@@ -173,7 +173,7 @@ const { checkinRating, checkinSubmitting, checkinMsg, checkin } = useCheckin()
 .ck-msg { font-size: 12px; color: var(--lime); max-width: 220px; }
 
 .empty {
-  margin: 24px 48px;
+  margin: 24px var(--content-px);
   padding: 40px;
   font-size: 14px;
   color: var(--t1);
@@ -182,4 +182,9 @@ const { checkinRating, checkinSubmitting, checkinMsg, checkin } = useCheckin()
   gap: 16px;
 }
 .empty-btn { background: var(--lime); color: var(--ink); font-weight: 700; padding: 8px 16px; }
+
+/* 窄屏桌面：三栏 → 单栏堆叠 */
+@media (max-width: 1100px) {
+  .cols { grid-template-columns: 1fr; }
+}
 </style>

@@ -75,7 +75,7 @@ const recommendation = computed(() => state.recommendation)
   background: #FFF; border: 2px solid var(--ink); box-shadow: var(--sh-lime-4);
   padding: 12px; display: flex; flex-direction: column; gap: 8px; cursor: pointer;
 }
-.rc-img { width: 100%; height: 100px; object-fit: cover; }
+.rc-img { width: 100%; height: 140px; object-fit: cover; }
 .rc-top { display: flex; align-items: center; justify-content: space-between; }
 .rank { background: var(--panel); padding: 4px 8px; font-family: var(--p8); font-size: 8px; color: var(--lime); }
 .rank.hot { background: var(--lime); color: var(--ink); }
