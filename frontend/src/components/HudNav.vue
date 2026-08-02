@@ -5,11 +5,17 @@
  * 激活态由路由 meta.bundle 决定
  */
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { session } from '../api/http'
+import { useRoute, useRouter } from 'vue-router'
+import { session, logout } from '../api/http'
 
 const route = useRoute()
+const router = useRouter()
 const active = computed(() => route.meta.bundle || 'plan')
+
+function onLogout() {
+  logout()
+  router.push('/login')
+}
 
 const menus = [
   { key: 'plan', label: '开始规划', to: '/plan' },
@@ -40,6 +46,7 @@ const menus = [
       <span class="user">
         <i class="dot" :class="{ off: !session.user }" />{{ session.user ? session.user.display_name : '连接中…' }}
       </span>
+      <button v-if="session.user" class="logout" @click="onLogout">退出</button>
     </div>
   </nav>
 </template>
@@ -67,7 +74,17 @@ const menus = [
 .mi:hover { color: var(--t1); }
 .mi.on:hover { color: var(--lime); }
 
-.right { display: flex; align-items: center; }
+.right { display: flex; align-items: center; gap: 10px; }
+.logout {
+  background: none;
+  border: 1px solid var(--line);
+  padding: 8px 12px;
+  font-family: var(--silk);
+  font-size: 11px;
+  color: var(--t3);
+  cursor: pointer;
+}
+.logout:hover { color: var(--red); border-color: var(--red); }
 .user {
   display: inline-flex;
   align-items: center;

@@ -1,7 +1,9 @@
 import { h } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { useIsMobile } from './composables/useIsMobile'
+import { hasToken } from './api/http'
 
+import LoginScreen from './components/LoginScreen.vue'
 import S1Home from './components/S1Home.vue'
 import S2Routes from './components/S2Routes.vue'
 import S3Detail from './components/S3Detail.vue'
@@ -24,10 +26,11 @@ const byDevice = (desktop, mobile) => ({
   }
 })
 
-export default createRouter({
+const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', redirect: '/plan' },
+    { path: '/login', component: LoginScreen, meta: { title: '登录' } },
     { path: '/plan', component: byDevice(S1Home, MPlan), meta: { bundle: 'plan', title: '开始规划' } },
     { path: '/plan/results', component: byDevice(S2Routes, MPlanResults), meta: { bundle: 'plan', title: '推荐结果' } },
     { path: '/routes', component: byDevice(S5Library, MRoutes), meta: { bundle: 'library', title: '路线库' } },
@@ -38,3 +41,11 @@ export default createRouter({
   ],
   scrollBehavior: () => ({ top: 0 })
 })
+
+// 未登录一律先走登录/注册页
+router.beforeEach((to) => {
+  if (to.path !== '/login' && !hasToken()) return '/login'
+  return true
+})
+
+export default router

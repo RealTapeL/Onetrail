@@ -1,6 +1,14 @@
 <script setup>
 /** 移动端 slim 头部（logo + 用户 chip），对齐 M1-M4 设计稿 */
-import { session } from '../../api/http'
+import { useRouter } from 'vue-router'
+import { session, logout } from '../../api/http'
+
+const router = useRouter()
+
+function onLogout() {
+  logout()
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -14,7 +22,10 @@ import { session } from '../../api/http'
       </svg>
       <span class="en">ONE TRAIL</span>
     </router-link>
-    <span class="lv">{{ session.user?.display_name || 'HIKER' }}</span>
+    <button v-if="session.user" class="lv as-btn" title="退出登录" @click="onLogout">
+      {{ session.user.display_name }} ⏻
+    </button>
+    <span v-else class="lv">HIKER</span>
   </header>
 </template>
 
@@ -45,4 +56,6 @@ import { session } from '../../api/http'
   font-size: 9px;
   color: var(--lime);
 }
+.as-btn { cursor: pointer; }
+.as-btn:active { color: var(--red); border-color: var(--red); }
 </style>

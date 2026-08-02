@@ -59,7 +59,7 @@ frontend/
 
 页面数据已全部切换到真实接口（`src/api/index.js`），原 mock 数据层已删除：
 
-- **会话**：`api/http.js` 的 `ensureSession()` 用预设管理员账号自动注册/登录，token 存 localStorage。
+- **会话**：`/login` 页邮箱+密码登录/注册（`api/http.js` 的 `loginWith`/`registerWith`），token 存 localStorage；路由守卫拦截未登录访问，导航栏可退出登录。
 - **S1/M1 需求输入** → `POST /api/v1/recommendations/plan`（体能等级映射为距离/爬升硬限制；兴趣写入偏好画像；已有装备按名称匹配目录 id）。
 - **S2/M6 推荐结果** ← 共享状态 `state.recommendation`（Top3 + 备选 + 风险提示）。
 - **S5/M2 路线库** → `GET /api/v1/routes`（关键词/景观标签筛选）；天气胶囊 → `GET /api/v1/meta/weather-tip`（浏览器定位，未授权时不显示）。

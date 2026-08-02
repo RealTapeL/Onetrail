@@ -1,17 +1,15 @@
 /**
  * ONE TRAIL · HTTP 基础设施
- * fetch 封装（/api/v1、Bearer token）+ 预设演示账号自动登录。
+ * fetch 封装（/api/v1、Bearer token）+ 真实账号登录/注册会话。
  */
 import { reactive } from 'vue'
 import { reportError } from './logger'
 
 const BASE = '/api/v1'
+const TOKEN_KEY = 'ot_token'
 
 // 上报豁免：日志端点自身失败不再上报，避免循环
 const isLogEndpoint = (path) => path.startsWith('/logs/')
-
-// 预设的演示账号：首次启动自动注册，之后直接登录。
-const ADMIN = { email: 'admin@onetrail.dev', password: 'admin123456', display_name: 'admin' }
 
 export class ApiError extends Error {
   constructor(status, message) {
@@ -28,7 +26,7 @@ export const session = reactive({
 
 export async function api(path, { method = 'GET', body, auth = true } = {}) {
   const headers = { 'Content-Type': 'application/json' }
-  const token = localStorage.getItem('ot_token')
+  const token = localStorage.getItem(TOKEN_KEY)
   if (auth && token) headers.Authorization = `Bearer ${token}`
   let response
   try {
@@ -58,33 +56,51 @@ export async function api(path, { method = 'GET', body, auth = true } = {}) {
   return response.json()
 }
 
-async function login() {
-  const data = await api('/auth/login', {
-    method: 'POST',
-    auth: false,
-    body: { email: ADMIN.email, password: ADMIN.password }
-  })
-  return data.access_token
+export function hasToken() {
+  return Boolean(localStorage.getItem(TOKEN_KEY))
 }
 
+/** 真实账号登录：成功则保存 token 并拉取用户信息 */
+export async function loginWith(email, password) {
+  const data = await api('/auth/login', { method: 'POST', auth: false, body: { email, password } })
+  localStorage.setItem(TOKEN_KEY, data.access_token)
+  session.user = await api('/profile/me')
+  session.error = null
+  session.ready = true
+}
+
+/** 真实账号注册：注册成功后自动登录 */
+export async function registerWith(email, password, displayName) {
+  await api('/auth/register', {
+    method: 'POST',
+    auth: false,
+    body: { email, password, display_name: displayName }
+  })
+  await loginWith(email, password)
+}
+
+/** 退出登录：清除 token 与会话 */
+export function logout() {
+  localStorage.removeItem(TOKEN_KEY)
+  session.user = null
+  session.error = null
+}
+
+/** 已有 token 时恢复会话（刷新页面后用）；无 token 直接标记 ready */
 export async function ensureSession() {
   if (session.ready) return
+  if (!hasToken()) {
+    session.ready = true
+    return
+  }
   try {
-    let token
-    try {
-      token = await login()
-    } catch {
-      await api('/auth/register', {
-        method: 'POST',
-        auth: false,
-        body: { email: ADMIN.email, password: ADMIN.password, display_name: ADMIN.display_name }
-      })
-      token = await login()
-    }
-    localStorage.setItem('ot_token', token)
     session.user = await api('/profile/me')
     session.error = null
   } catch (err) {
+    // 仅 token 失效（401/403）才清除；后端暂时不可达时保留 token
+    if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+      localStorage.removeItem(TOKEN_KEY)
+    }
     session.error = err.message || '后端连接失败'
   } finally {
     session.ready = true
