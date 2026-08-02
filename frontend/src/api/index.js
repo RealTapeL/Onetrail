@@ -57,13 +57,13 @@ const FITNESS_LIMITS = {
   5: { max_distance_km: 30, max_elevation_gain_m: 2000 }
 }
 
-/** GET /meta/geocode：城市/地名 → 坐标（目的地输入用，解析失败时返回 null 由调用方提示） */
+/** GET /meta/geocode：城市/地名 → 坐标（目的地输入用；失败时抛出真实原因，由表单展示） */
 export async function geocodeCity(city) {
   if (!city || !city.trim()) return null
   try {
     return await api(`/meta/geocode?city=${encodeURIComponent(city.trim())}`, { auth: false })
-  } catch {
-    return null
+  } catch (err) {
+    throw new Error(`目的地「${city.trim()}」解析失败：${err.message || '服务暂不可用'}`)
   }
 }
 
@@ -77,7 +77,6 @@ export async function postRecommendations(form) {
   // 未点「定位」时按城市文本解析坐标（用户手输城市不会自动改坐标）
   if (!form.location.useCurrentPosition && form.location.city.trim()) {
     const geo = await geocodeCity(form.location.city)
-    if (!geo) throw new Error(`无法解析目的地「${form.location.city}」，请检查城市名或改用定位`)
     form.location.lat = geo.latitude
     form.location.lng = geo.longitude
   }

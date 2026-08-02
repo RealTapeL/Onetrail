@@ -178,14 +178,6 @@ class AmapMapProvider:
         ]
         return [spot for spot in spots if _is_hiking_relevant(spot.name)]
 
-
-# 名称中含这些词才视为徒步相关；含 "-" 的多为景点内部的子点位，排除
-_HIKING_NAME_KEYWORDS = ("森林", "郊野", "湿地", "山", "峰", "湖", "峡谷", "古道", "登山", "徒步", "风景")
-
-
-def _is_hiking_relevant(name: str) -> bool:
-    return "-" not in name and any(keyword in name for keyword in _HIKING_NAME_KEYWORDS)
-
     def geocode_city(self, city: str) -> CityLocation:
         try:
             result = self.client.geocode(city)
@@ -196,6 +188,14 @@ def _is_hiking_relevant(name: str) -> bool:
             longitude=result["longitude"],
             formatted_address=result["formatted_address"],
         )
+
+
+# 名称中含这些词才视为徒步相关；含 "-" 的多为景点内部的子点位，排除
+_HIKING_NAME_KEYWORDS = ("森林", "郊野", "湿地", "山", "峰", "湖", "峡谷", "古道", "登山", "徒步", "风景")
+
+
+def _is_hiking_relevant(name: str) -> bool:
+    return "-" not in name and any(keyword in name for keyword in _HIKING_NAME_KEYWORDS)
 
 
 class AmapWeatherProvider:
