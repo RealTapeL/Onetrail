@@ -123,7 +123,8 @@ const submit = async () => {
           <div class="field span2">
             <div class="f-label">目的地 · LOCATION</div>
             <div class="f-row">
-              <input v-model="form.location.city" class="f-input" placeholder="城市" />
+              <input v-model="form.location.city" class="f-input" placeholder="城市"
+                     @input="form.location.useCurrentPosition = false" />
               <button class="locate" @click="locate">定位</button>
             </div>
             <div class="f-coord">坐标 {{ form.location.lat.toFixed(2) }}, {{ form.location.lng.toFixed(2) }} · 定位后自动填入</div>

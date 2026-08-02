@@ -52,6 +52,14 @@ const recommendation = computed(() => state.recommendation)
           </div>
         </div>
       </section>
+
+      <section v-if="recommendation.hikingSpots.length" class="alt">
+        <div class="alt-title">周边徒步地 · 来自高德地图</div>
+        <div v-for="s in recommendation.hikingSpots" :key="s.name" class="spot-row">
+          <div class="alt-name">{{ s.name }}</div>
+          <div class="alt-meta">{{ s.meta }}</div>
+        </div>
+      </section>
       </template>
     </div>
   </div>
@@ -87,6 +95,7 @@ const recommendation = computed(() => state.recommendation)
 .alt-thumb { width: 36px; height: 36px; object-fit: cover; flex: none; }
 .alt-name { font-size: 11px; font-weight: 700; color: var(--t1); }
 .alt-meta { font-size: 9px; color: var(--t2); margin-top: 2px; }
+.spot-row { padding: 6px 0; border-top: 1px dashed var(--line); }
 .notice { font-size: 10px; font-weight: 500; color: var(--amber); }
 .empty { font-size: 11px; color: var(--t2); line-height: 1.8; display: flex; flex-direction: column; gap: 10px; }
 .empty-btn { align-self: flex-start; font-size: 11px; font-weight: 700; color: var(--lime); padding: 0; }

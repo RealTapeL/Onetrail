@@ -60,3 +60,21 @@ def get_weather_tip(latitude: float, longitude: float) -> dict[str, str]:
     if forecast.wind_power:
         parts.append(f"风力{forecast.wind_power}级")
     return {"text": " · ".join(parts)}
+
+
+@meta_router.get("/geocode")
+def geocode_city(city: str) -> dict:
+    """城市/地名 → 坐标（S1/M1 表单的目的地输入用）。"""
+    if not city.strip():
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="city 不能为空")
+    try:
+        location = get_map_provider().geocode_city(city.strip())
+    except ProviderNotConfigured as exc:
+        raise HTTPException(status_code=status.HTTP_424_FAILED_DEPENDENCY, detail=str(exc)) from exc
+    except ProviderRequestError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+    return {
+        "latitude": location.latitude,
+        "longitude": location.longitude,
+        "formatted_address": location.formatted_address,
+    }

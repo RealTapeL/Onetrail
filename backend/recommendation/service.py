@@ -7,9 +7,16 @@ from sqlalchemy.orm import Session
 from equipment.models import Equipment
 from hiking_history.service import CapabilityProfile, get_capability_profile
 from identity.models import HikingPreference
-from recommendation.providers import MapProvider, ProviderRequestError, WeatherProvider, WeatherSnapshot
+from recommendation.providers import (
+    MapProvider,
+    ProviderNotConfigured,
+    ProviderRequestError,
+    WeatherProvider,
+    WeatherSnapshot,
+)
 from recommendation.schemas import (
     EquipmentSuggestion,
+    HikingSpot,
     RecommendedRoute,
     RecommendationRequest,
     RecommendationResponse,
@@ -18,6 +25,9 @@ from recommendation.schemas import (
     WeatherAssessment,
 )
 from route_content.models import HikingRoute, RouteTag
+
+# 路线起点距目的地超过该值时，视为"路线库在目的地附近没有路线"
+NEARBY_ROUTE_KM = 100.0
 
 
 def _effective_limit(request_value: float | int | None, preference_value: float | int | None) -> float | int | None:
@@ -69,6 +79,7 @@ def recommend(
     }
 
     results: list[RecommendedRoute] = []
+    nearest_route_km: float | None = None
     for route in candidates:
         if distance_limit is not None and route.distance_km > distance_limit:
             continue
@@ -76,6 +87,8 @@ def recommend(
             continue
         if duration_limit is not None and route.estimated_duration_min > duration_limit:
             continue
+        proximity_km = _haversine_km(request.latitude, request.longitude, route.start_latitude, route.start_longitude)
+        nearest_route_km = proximity_km if nearest_route_km is None else min(nearest_route_km, proximity_km)
         score, reasons = _score_route(
             route=route,
             preference=preference,
@@ -138,6 +151,29 @@ def recommend(
         result.equipment_suggestions = equipment.get(result.route_id, [])
 
     notice = None if results else "没有满足当前限制的已发布路线。可调整距离、爬升或耗时限制，或先补充路线内容。"
+
+    # 目的地附近（100km 内）路线库没有路线时，用高德 POI 补充真实周边徒步地
+    hiking_spots: list[HikingSpot] = []
+    if nearest_route_km is None or nearest_route_km > NEARBY_ROUTE_KM:
+        try:
+            raw_spots = map_provider.get_hiking_spots(request.latitude, request.longitude, map_context.city)
+        except (ProviderNotConfigured, ProviderRequestError):
+            raw_spots = []
+        hiking_spots = [
+            HikingSpot(
+                name=spot.name,
+                category=spot.category,
+                address=spot.address,
+                distance_m=_spot_distance_m(request.latitude, request.longitude, spot.location),
+                location=spot.location,
+            )
+            for spot in raw_spots[:8]
+        ]
+        if hiking_spots:
+            notice = _append_notice(
+                notice, "路线库暂无目的地附近的路线，以下周边徒步地来自高德地图（仅含位置信息，无路线参数）。"
+            )
+
     if not capability.samples:
         notice = _append_notice(notice, "暂无历史徒步记录，本次使用静态偏好和路线数据进行匹配。")
     if request.group_size > 1:
@@ -151,6 +187,7 @@ def recommend(
         capability_samples=capability.samples,
         routes=top_results,
         alternates=alternates,
+        hiking_spots=hiking_spots,
         notice=notice,
     )
 
@@ -271,6 +308,17 @@ def _haversine_km(latitude_a: float, longitude_a: float, latitude_b: float, long
     lon_delta = radians(longitude_b - longitude_a)
     value = sin(lat_delta / 2) ** 2 + cos(radians(latitude_a)) * cos(radians(latitude_b)) * sin(lon_delta / 2) ** 2
     return 2 * earth_radius_km * asin(sqrt(value))
+
+
+def _spot_distance_m(origin_latitude: float, origin_longitude: float, location: str | None) -> float | None:
+    """高德 POI 的 location 为 "经度,纬度" 文本，计算与目的地的直线距离（米）。"""
+    if not location or "," not in location:
+        return None
+    try:
+        longitude, latitude = (float(part) for part in location.split(",", 1))
+    except ValueError:
+        return None
+    return round(_haversine_km(origin_latitude, origin_longitude, latitude, longitude) * 1000, 1)
 
 
 def _equipment_suggestions(

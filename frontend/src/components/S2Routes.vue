@@ -67,6 +67,19 @@ const recommendation = computed(() => state.recommendation)
           </div>
         </div>
       </div>
+
+      <div v-if="recommendation.hikingSpots.length" class="alt-sec">
+        <div class="alt-panel panel-d">
+          <div class="alt-head">
+            <span class="ptitle">目的地周边徒步地 · 来自高德地图</span>
+            <span class="alt-note">路线库尚未收录这些地点的详细路线，仅展示真实位置信息</span>
+          </div>
+          <div v-for="s in recommendation.hikingSpots" :key="s.name" class="alt-row spot-row">
+            <span class="alt-name">{{ s.name }}</span>
+            <span class="alt-meta">{{ s.meta }}</span>
+          </div>
+        </div>
+      </div>
     </template>
   </section>
 </template>
@@ -107,6 +120,7 @@ const recommendation = computed(() => state.recommendation)
 .alt-name { font-size: 14px; font-weight: 700; color: var(--t1); }
 .alt-meta { font-size: 12px; color: var(--t2); }
 .alt-view { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--lime); }
+.spot-row { height: auto; min-height: 32px; cursor: default; }
 
 .empty {
   margin: 24px 48px;

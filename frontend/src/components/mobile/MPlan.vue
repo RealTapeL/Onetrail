@@ -71,7 +71,7 @@ const submit = async () => {
         <div class="row"><span class="lb">出行日期 · DATE</span>
           <span class="ctl"><input type="date" v-model="form.dateRange.start" class="in" /></span></div>
         <div class="row"><span class="lb">目的地 · LOCATION</span>
-          <span class="ctl"><input v-model="form.location.city" class="in" /></span></div>
+          <span class="ctl"><input v-model="form.location.city" class="in" @input="form.location.useCurrentPosition = false" /></span></div>
         <div class="row"><span class="lb">同行人数 · PARTY</span>
           <span class="ctl"><input type="number" min="1" v-model.number="form.party.adults" class="in" /> 人</span></div>
         <div class="row"><span class="lb">预算 · BUDGET（元/人）</span>

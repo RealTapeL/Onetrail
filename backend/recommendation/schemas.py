@@ -47,6 +47,16 @@ class EquipmentSuggestion(BaseModel):
     reason: str
 
 
+class HikingSpot(BaseModel):
+    """高德 POI 发现的周边徒步地：名称/地址/距离为真实数据，无路线参数。"""
+
+    name: str
+    category: str
+    address: str | None = None
+    distance_m: float | None = None
+    location: str | None = None
+
+
 class RecommendedRoute(BaseModel):
     route_id: str
     title: str
@@ -72,6 +82,7 @@ class RecommendationResponse(BaseModel):
     capability_samples: int = 0
     routes: list[RecommendedRoute]
     alternates: list[RecommendedRoute] = Field(default_factory=list)
+    hiking_spots: list[HikingSpot] = Field(default_factory=list)
     notice: str | None = None
 
 

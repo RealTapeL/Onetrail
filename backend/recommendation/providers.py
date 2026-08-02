@@ -55,6 +55,24 @@ class SupplyPoint:
     location: str | None
 
 
+@dataclass(frozen=True)
+class HikingSpot:
+    """高德 POI 发现的周边徒步地（非路线库路线，不含距离/爬升等路线参数）。"""
+
+    name: str
+    category: str
+    address: str | None
+    distance_m: float | None
+    location: str | None
+
+
+@dataclass(frozen=True)
+class CityLocation:
+    latitude: float
+    longitude: float
+    formatted_address: str
+
+
 class WeatherProvider(Protocol):
     def get_forecast(self, adcode: str, travel_date: date) -> WeatherSnapshot: ...
 
@@ -67,6 +85,10 @@ class MapProvider(Protocol):
     ) -> list[TransportOption]: ...
 
     def get_supply_points(self, latitude: float, longitude: float) -> list[SupplyPoint]: ...
+
+    def get_hiking_spots(self, latitude: float, longitude: float, city: str) -> list[HikingSpot]: ...
+
+    def geocode_city(self, city: str) -> CityLocation: ...
 
 
 class UnconfiguredWeatherProvider:
@@ -82,6 +104,12 @@ class UnconfiguredMapProvider:
         raise ProviderNotConfigured("高德地图服务尚未配置 AMAP_API_KEY")
 
     def get_supply_points(self, *args) -> list[SupplyPoint]:
+        raise ProviderNotConfigured("高德地图服务尚未配置 AMAP_API_KEY")
+
+    def get_hiking_spots(self, *args) -> list[HikingSpot]:
+        raise ProviderNotConfigured("高德地图服务尚未配置 AMAP_API_KEY")
+
+    def geocode_city(self, *args) -> CityLocation:
         raise ProviderNotConfigured("高德地图服务尚未配置 AMAP_API_KEY")
 
 
@@ -130,6 +158,44 @@ class AmapMapProvider:
             for poi in payload.get("pois", [])
             if poi.get("name")
         ]
+
+    def get_hiking_spots(self, latitude: float, longitude: float, city: str) -> list[HikingSpot]:
+        try:
+            payload = self.client.hiking_spots(city)
+        except AmapRequestError as exc:
+            raise ProviderRequestError(str(exc)) from exc
+        spots = [
+            HikingSpot(
+                name=poi.get("name", ""),
+                category=poi.get("type", "徒步地"),
+                address=poi.get("address") if isinstance(poi.get("address"), str) else None,
+                # 文本搜索不返回距离，由推荐服务用起点坐标自行计算
+                distance_m=None,
+                location=poi.get("location"),
+            )
+            for poi in payload.get("pois", [])
+            if poi.get("name")
+        ]
+        return [spot for spot in spots if _is_hiking_relevant(spot.name)]
+
+
+# 名称中含这些词才视为徒步相关；含 "-" 的多为景点内部的子点位，排除
+_HIKING_NAME_KEYWORDS = ("森林", "郊野", "湿地", "山", "峰", "湖", "峡谷", "古道", "登山", "徒步", "风景")
+
+
+def _is_hiking_relevant(name: str) -> bool:
+    return "-" not in name and any(keyword in name for keyword in _HIKING_NAME_KEYWORDS)
+
+    def geocode_city(self, city: str) -> CityLocation:
+        try:
+            result = self.client.geocode(city)
+        except AmapRequestError as exc:
+            raise ProviderRequestError(str(exc)) from exc
+        return CityLocation(
+            latitude=result["latitude"],
+            longitude=result["longitude"],
+            formatted_address=result["formatted_address"],
+        )
 
 
 class AmapWeatherProvider:

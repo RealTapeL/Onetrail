@@ -49,6 +49,18 @@ class AmapClient:
             "district": address.get("district"),
         }
 
+    def geocode(self, address: str) -> dict:
+        payload = self.request("v3/geocode/geo", address=address)
+        geocodes = payload.get("geocodes") or []
+        if not geocodes or not geocodes[0].get("location"):
+            raise AmapRequestError(f"高德未能解析地点：{address}")
+        longitude, latitude = geocodes[0]["location"].split(",")
+        return {
+            "latitude": float(latitude),
+            "longitude": float(longitude),
+            "formatted_address": geocodes[0].get("formatted_address") or address,
+        }
+
     def forecast(self, adcode: str) -> dict:
         return self.request("v3/weather/weatherInfo", city=adcode, extensions="all")
 
@@ -66,5 +78,16 @@ class AmapClient:
             radius="3000",
             sortrule="distance",
             offset="10",
+            page="1",
+        )
+
+    def hiking_spots(self, city: str) -> dict:
+        """城市范围内风景名胜/公园广场 POI（按分类码），徒步相关性由调用方过滤。"""
+        return self.request(
+            "v3/place/text",
+            types="110000|110200",
+            city=city,
+            citylimit="true",
+            offset="20",
             page="1",
         )

@@ -22,7 +22,7 @@ const GEAR_CATEGORIES = [
 /** S1/M1 表单默认值（v-model 绑定此形状的副本；日期需用户选择可预报范围内的出行日） */
 export const questFormDefaults = {
   dateRange: { start: '', end: '', nights: 2 },
-  location: { city: '杭州', district: '西湖区', lat: 30.25, lng: 120.13, useCurrentPosition: true },
+  location: { city: '杭州', district: '西湖区', lat: 30.25, lng: 120.13, useCurrentPosition: false },
   party: { adults: 2, type: 'FRIENDS' },
   budgetPerPerson: { min: 300, max: 500 },
   fitnessLevel: 3,
@@ -57,6 +57,16 @@ const FITNESS_LIMITS = {
   5: { max_distance_km: 30, max_elevation_gain_m: 2000 }
 }
 
+/** GET /meta/geocode：城市/地名 → 坐标（目的地输入用，解析失败时返回 null 由调用方提示） */
+export async function geocodeCity(city) {
+  if (!city || !city.trim()) return null
+  try {
+    return await api(`/meta/geocode?city=${encodeURIComponent(city.trim())}`, { auth: false })
+  } catch {
+    return null
+  }
+}
+
 /**
  * POST /recommendations/plan（S1 表单提交）
  * 返回视图结构（同 mock.recommendation），并写入共享状态供 S2/S4 使用。
@@ -64,6 +74,13 @@ const FITNESS_LIMITS = {
 export async function postRecommendations(form) {
   // 兴趣写入偏好画像，供推荐引擎做兴趣匹配
   await api('/profile/preferences', { method: 'PUT', body: { interests: form.interests } }).catch(() => {})
+  // 未点「定位」时按城市文本解析坐标（用户手输城市不会自动改坐标）
+  if (!form.location.useCurrentPosition && form.location.city.trim()) {
+    const geo = await geocodeCity(form.location.city)
+    if (!geo) throw new Error(`无法解析目的地「${form.location.city}」，请检查城市名或改用定位`)
+    form.location.lat = geo.latitude
+    form.location.lng = geo.longitude
+  }
   // 已有装备按名称匹配装备目录，得到真实目录 id
   let ownedIds = []
   if (form.ownedGear.length) {
@@ -108,6 +125,13 @@ export async function postRecommendations(form) {
       name: r.title,
       summary: `${r.region} · ${r.distance_km}KM · 匹配度 ${Math.round(r.score)}%`,
       thumb: THUMBS_ALT[i % THUMBS_ALT.length]
+    })),
+    // 目的地附近无路线库路线时，高德 POI 补充的真实周边徒步地
+    hikingSpots: (res.hiking_spots || []).map((s) => ({
+      name: s.name,
+      meta: [s.address, s.distance_m != null ? `距目的地约 ${(s.distance_m / 1000).toFixed(1)}KM` : null]
+        .filter(Boolean)
+        .join(' · ')
     }))
   }
   state.recommendation = view
