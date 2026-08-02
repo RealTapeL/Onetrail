@@ -5,6 +5,7 @@
 import { computed, ref } from 'vue'
 import MHeader from './MHeader.vue'
 import TabBar from './TabBar.vue'
+import RouteMarkModal from '../RouteMarkModal.vue'
 import { buildPlan, state } from '../../api/index'
 import { useCheckin } from '../../composables/useCheckin'
 
@@ -19,6 +20,12 @@ const gapCount = computed(() => (plan.value?.checklist || []).filter((g) => !che
 
 // ---- 完成徒步 · 打卡 ----
 const { checkinRating, checkinSubmitting, checkinMsg, checkin } = useCheckin()
+
+// 打卡成功后弹出「去过」感受记录弹窗
+const markOpen = ref(false)
+const onCheckin = async () => {
+  if (await checkin()) markOpen.value = true
+}
 
 const transitIcons = {
   metro: '<rect x="5" y="3" width="10" height="10"/><rect x="7" y="5" width="6" height="3" class="cut"/><rect x="7" y="10" width="2" height="2" class="cut"/><rect x="11" y="10" width="2" height="2" class="cut"/><rect x="6" y="14" width="3" height="2"/><rect x="11" y="14" width="3" height="2"/>',
@@ -83,7 +90,7 @@ const bell = '<rect x="7" y="1" width="2" height="2"/><rect x="5" y="3" width="6
           <button v-for="n in 5" :key="n" class="ck-star" :class="{ on: n <= checkinRating }"
                   @click="checkinRating = n">{{ n <= checkinRating ? '★' : '☆' }}</button>
         </div>
-        <button class="ck-btn" :disabled="checkinSubmitting" @click="checkin">
+        <button class="ck-btn" :disabled="checkinSubmitting" @click="onCheckin">
           {{ checkinSubmitting ? '打卡中…' : '打卡 · 计入能力画像' }}
         </button>
         <div v-if="checkinMsg" class="ck-msg">{{ checkinMsg }}</div>
@@ -102,6 +109,9 @@ const bell = '<rect x="7" y="1" width="2" height="2"/><rect x="5" y="3" width="6
       </template>
     </div>
     <TabBar />
+    <RouteMarkModal v-if="markOpen && plan" :route-id="state.selectedRouteId"
+                    initial-tab="done" :initial-rating="checkinRating"
+                    @close="markOpen = false" />
   </div>
 </template>
 

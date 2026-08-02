@@ -5,6 +5,7 @@
 import { computed, ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import BackHeader from './BackHeader.vue'
+import RouteMarkModal from '../RouteMarkModal.vue'
 import { fetchRouteDetail, IMPRESSION_OPTIONS, setFavorite } from '../../api/index'
 import { useRouteReview } from '../../composables/useRouteReview'
 import { buildRatingPanel } from '../../composables/ratingPanel'
@@ -45,6 +46,21 @@ const toggleFavorite = async () => {
     await setFavorite(routeDetail.value.id, !favored.value)
     favored.value = !favored.value
   } catch { /* 保持原状态 */ }
+}
+
+// ---- 想去 / 去过 记录弹窗 ----
+const markOpen = ref(false)
+const markTab = ref('wish')
+const openMark = (tab) => {
+  if (!routeDetail.value) return
+  // 已想去时直接点「想去」= 取消想去，不再开弹窗
+  if (tab === 'wish' && favored.value) { toggleFavorite(); return }
+  markTab.value = tab
+  markOpen.value = true
+}
+const onMarked = ({ tab }) => {
+  if (tab === 'wish') favored.value = true
+  else load(route.params.id)
 }
 
 // ---- 写评价 / 气质投票 ----
@@ -169,9 +185,13 @@ const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
     <div class="cta-spacer" />
     <div class="cta-bar">
       <button class="cta-main" @click="$router.push('/trip/current')">加入出行计划</button>
-      <button class="cta-sub" :class="{ on: favored }" @click="toggleFavorite">{{ favored ? '已收藏' : '收藏' }}</button>
+      <button class="cta-sub" :class="{ on: favored }" @click="openMark('wish')">{{ favored ? '已想去' : '想去' }}</button>
+      <button class="cta-sub" @click="openMark('done')">去过</button>
     </div>
     </template>
+    <RouteMarkModal v-if="markOpen && routeDetail" :route-id="routeDetail.id"
+                    :initial-tab="markTab"
+                    @close="markOpen = false" @marked="onMarked" />
   </div>
 </template>
 

@@ -4,6 +4,7 @@
  */
 import { computed, ref } from 'vue'
 import HudNav from './HudNav.vue'
+import RouteMarkModal from './RouteMarkModal.vue'
 import { buildPlan, setFavorite, state } from '../api/index'
 import { useCheckin } from '../composables/useCheckin'
 
@@ -29,6 +30,12 @@ const favoritePlan = async () => {
 
 // ---- 完成徒步 · 打卡（反哺推荐能力画像） ----
 const { checkinRating, checkinSubmitting, checkinMsg, checkin } = useCheckin()
+
+// 打卡成功后弹出「去过」感受记录弹窗
+const markOpen = ref(false)
+const onCheckin = async () => {
+  if (await checkin()) markOpen.value = true
+}
 </script>
 
 <template>
@@ -111,7 +118,7 @@ const { checkinRating, checkinSubmitting, checkinMsg, checkin } = useCheckin()
             <button v-for="n in 5" :key="n" class="ck-star" :class="{ on: n <= checkinRating }"
                     @click="checkinRating = n">{{ n <= checkinRating ? '★' : '☆' }}</button>
           </span>
-          <button class="btn lime" :disabled="checkinSubmitting" @click="checkin">
+          <button class="btn lime" :disabled="checkinSubmitting" @click="onCheckin">
             {{ checkinSubmitting ? '打卡中…' : '完成徒步 · 打卡' }}
           </button>
           <span v-if="checkinMsg" class="ck-msg">{{ checkinMsg }}</span>
@@ -121,6 +128,9 @@ const { checkinRating, checkinSubmitting, checkinMsg, checkin } = useCheckin()
         <button class="btn soon">约伴同行 · 即将上线</button>
       </div>
     </template>
+    <RouteMarkModal v-if="markOpen && plan" :route-id="state.selectedRouteId"
+                    initial-tab="done" :initial-rating="checkinRating"
+                    @close="markOpen = false" />
   </section>
 </template>
 

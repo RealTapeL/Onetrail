@@ -5,6 +5,7 @@
 import { computed, ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import HudNav from './HudNav.vue'
+import RouteMarkModal from './RouteMarkModal.vue'
 import { fetchRouteDetail, IMPRESSION_OPTIONS, setFavorite } from '../api/index'
 import { useRouteReview } from '../composables/useRouteReview'
 import { buildRatingPanel } from '../composables/ratingPanel'
@@ -44,6 +45,20 @@ const toggleFavorite = async () => {
     await setFavorite(route.params.id, !favored.value)
     favored.value = !favored.value
   } catch { /* 未连接后端时保持原状态 */ }
+}
+
+// ---- 想去 / 去过 记录弹窗 ----
+const markOpen = ref(false)
+const markTab = ref('wish')
+const openMark = (tab) => {
+  // 已想去时直接点「想去」= 取消想去，不再开弹窗
+  if (tab === 'wish' && favored.value) { toggleFavorite(); return }
+  markTab.value = tab
+  markOpen.value = true
+}
+const onMarked = ({ tab }) => {
+  if (tab === 'wish') favored.value = true
+  else load(route.params.id)
 }
 
 // ---- 写评价 / 气质投票 ----
@@ -168,7 +183,8 @@ const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
 
           <div class="rail-cta">
             <button class="cta-main" @click="$router.push('/trip/current')">加入出行计划</button>
-            <button class="cta-sub" @click="toggleFavorite">{{ favored ? '已收藏' : '收藏' }}</button>
+            <button class="cta-sub" :class="{ on: favored }" @click="openMark('wish')">{{ favored ? '已想去' : '想去' }}</button>
+            <button class="cta-sub" @click="openMark('done')">去过</button>
           </div>
 
           <div class="vote-g">
@@ -189,6 +205,9 @@ const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
         </aside>
       </div>
     </template>
+    <RouteMarkModal v-if="markOpen && routeDetail" :route-id="route.params.id"
+                    :initial-tab="markTab"
+                    @close="markOpen = false" @marked="onMarked" />
   </section>
 </template>
 
@@ -301,6 +320,7 @@ const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
 .rail-cta { display: flex; gap: 12px; }
 .cta-main { flex: 1; height: 44px; background: var(--lime); border: 2px solid var(--ink); font-size: 14px; font-weight: 700; color: var(--ink); }
 .cta-sub { width: 68px; flex: none; height: 44px; background: #FFFFFF; border: 2px solid var(--ink); font-size: 14px; font-weight: 700; color: var(--ink); }
+.cta-sub.on { background: var(--lime); }
 
 .empty {
   margin: 24px var(--content-px);

@@ -24,8 +24,10 @@ export function useCheckin() {
         rating: checkinRating.value
       })
       checkinMsg.value = '打卡成功，已计入能力画像'
+      return true
     } catch (err) {
       checkinMsg.value = err.message || '打卡失败，请稍后重试'
+      return false
     } finally {
       checkinSubmitting.value = false
     }
