@@ -17,7 +17,12 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        origins = [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        # Capacitor 安卓/iOS 壳内 WebView 的固定来源，始终放行
+        for capacitor_origin in ("http://localhost", "https://localhost", "capacitor://localhost"):
+            if capacitor_origin not in origins:
+                origins.append(capacitor_origin)
+        return origins
 
 
 @lru_cache
