@@ -77,10 +77,12 @@ const submitReview = async () => {
     <template v-else>
     <div class="hero">
       <img class="hero-img" :src="routeDetail.coverImage" :alt="routeDetail.name" />
-      <span class="video-chip">视频预览 · 00:42</span>
-      <span class="play">
-        <svg viewBox="0 0 16 20" width="14" height="18"><polygon points="0,0 16,10 0,20" fill="#0B0B0B" /></svg>
-      </span>
+      <template v-if="routeDetail.videoUrl">
+        <a class="video-chip" :href="routeDetail.videoUrl" target="_blank" rel="noopener">视频预览 ▶</a>
+        <span class="play">
+          <svg viewBox="0 0 16 20" width="14" height="18"><polygon points="0,0 16,10 0,20" fill="#0B0B0B" /></svg>
+        </span>
+      </template>
     </div>
 
     <div class="m-body">
@@ -96,7 +98,10 @@ const submitReview = async () => {
         <div class="t-chips">
           <span v-for="t in routeDetail.terrain.tags" :key="t.label" class="t-chip" :class="{ warn: t.warning }">{{ t.label }}</span>
         </div>
-        <div class="p-dim">{{ routeDetail.terrain.safetyTip }}</div>
+        <div v-for="n in routeDetail.terrain.safetyNotes" :key="n.label" class="p-dim t-note">
+          <b>{{ n.label }}</b>：{{ n.note }}
+        </div>
+        <div v-if="!routeDetail.terrain.safetyNotes.length" class="p-dim">{{ routeDetail.terrain.safetyTip }}</div>
       </section>
 
       <section class="vote">
@@ -153,7 +158,9 @@ const submitReview = async () => {
 <style scoped>
 .hero { position: relative; height: 190px; flex: none; }
 .hero-img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.video-chip { position: absolute; left: 12px; top: 12px; background: var(--bg); color: #FFF; font-size: 10px; padding: 5px 10px; }
+.video-chip { position: absolute; left: 12px; top: 12px; background: var(--bg); color: #FFF; font-size: 10px; padding: 5px 10px; text-decoration: none; }
+.t-note { line-height: 1.6; }
+.t-note b { color: var(--red); font-weight: 700; }
 .play {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   width: 38px; height: 46px; background: var(--lime); display: grid; place-items: center;

@@ -159,12 +159,17 @@ export async function fetchRouteDetail(routeId) {
       { label: '难度 · LEVEL', value: `Lv.${detail.level}` }
     ],
     terrain: {
-      tags: detail.tags.map((t) => ({ label: t.name, warning: t.category === 'safety' })),
-      safetyTip:
-        detail.tags.find((t) => t.safety_note)?.safety_note
-          ? `安全提示：${detail.tags.find((t) => t.safety_note).safety_note}`
-          : '安全提示：暂无标签化安全提示，请出发前确认现场状况。'
+      tags: detail.tags.map((t) => ({
+        label: t.name,
+        warning: t.category === 'safety' || Boolean(t.safety_note),
+        note: t.safety_note || null
+      })),
+      safetyNotes: detail.tags
+        .filter((t) => t.safety_note)
+        .map((t) => ({ label: t.name, note: t.safety_note })),
+      safetyTip: '安全提示：暂无标签化安全提示，请出发前确认现场状况。'
     },
+    videoUrl: detail.video_url || null,
     reviews: reviewList.map((r) => ({
       author: '徒步者',
       rating: r.rating,

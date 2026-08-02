@@ -87,6 +87,8 @@ const submitReview = async () => {
         <div class="left-col">
           <div class="preview">
             <img class="preview-img" :src="routeDetail.coverImage" :alt="routeDetail.name" />
+            <a v-if="routeDetail.videoUrl" class="video-link" :href="routeDetail.videoUrl"
+               target="_blank" rel="noopener">▶ 视频预览</a>
           </div>
 
           <div class="stats-bar panel-d">
@@ -102,7 +104,10 @@ const submitReview = async () => {
               <span v-for="t in routeDetail.terrain.tags" :key="t.label" class="t-chip" :class="{ warn: t.warning }">{{ t.label }}</span>
               <span v-if="!routeDetail.terrain.tags.length" class="t-chip">暂无标签</span>
             </div>
-            <div class="t-tip">{{ routeDetail.terrain.safetyTip }}</div>
+            <div v-for="n in routeDetail.terrain.safetyNotes" :key="n.label" class="t-note">
+              <b>{{ n.label }}</b>：{{ n.note }}
+            </div>
+            <div v-if="!routeDetail.terrain.safetyNotes.length" class="t-tip">{{ routeDetail.terrain.safetyTip }}</div>
           </div>
 
           <div class="reviews panel-d">
@@ -176,6 +181,19 @@ const submitReview = async () => {
 
 .preview { position: relative; width: 904px; height: 300px; flex: none; }
 .preview-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.video-link {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  background: var(--bg);
+  color: var(--lime);
+  border: 1px solid var(--lime);
+  padding: 8px 14px;
+  font-family: var(--silk);
+  font-size: 11px;
+  text-decoration: none;
+}
+.video-link:hover { background: var(--lime); color: var(--ink); }
 
 .stats-bar { height: 91px; display: flex; align-items: center; gap: 24px; padding: 0 20px; flex: none; }
 .stat { width: 198px; display: flex; flex-direction: column; gap: 6px; }
@@ -187,6 +205,8 @@ const submitReview = async () => {
 .t-chip { background: var(--bg); border: 1px solid var(--line); color: var(--t1); font-size: 12px; font-weight: 500; padding: 7px 12px; }
 .t-chip.warn { border-color: var(--amber); color: var(--amber); }
 .t-tip { font-size: 12px; color: var(--t2); }
+.t-note { font-size: 12px; color: var(--t2); line-height: 1.6; }
+.t-note b { color: var(--red); font-weight: 700; }
 
 .reviews { padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
 .rv-meta { font-size: 12px; font-weight: 700; color: var(--lime); }
