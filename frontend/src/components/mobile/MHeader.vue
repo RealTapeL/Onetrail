@@ -38,8 +38,8 @@ function onLogout() {
   width: 100%;
   max-width: 480px;
   z-index: 20;
-  height: 48px;
-  padding: 0 16px;
+  height: calc(48px + var(--sat));
+  padding: var(--sat) 16px 0;
   display: flex;
   align-items: center;
   justify-content: space-between;

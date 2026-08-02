@@ -38,7 +38,7 @@ const tabs = [
 
 <style scoped>
 /* 占位块：在文档流中撑起固定导航的高度，防止内容被遮挡 */
-.tab-spacer { height: 56px; flex: none; }
+.tab-spacer { height: calc(56px + var(--sab)); flex: none; }
 .tab-bar {
   position: fixed;
   bottom: 0;
@@ -48,7 +48,8 @@ const tabs = [
   max-width: 480px;
   z-index: 20;
   display: flex;
-  height: 56px;
+  height: calc(56px + var(--sab));
+  padding-bottom: var(--sab);
   background: var(--bg);
   border-top: 1px solid var(--line);
 }

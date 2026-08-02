@@ -222,7 +222,7 @@ const submitReview = async () => {
 .wr-submit { background: var(--lime); border: 2px solid var(--ink); color: var(--ink); font-size: 12px; font-weight: 700; padding: 7px 18px; }
 .wr-submit:disabled { opacity: 0.6; }
 .who { border-top: 1px dashed var(--line); padding-top: 8px; }
-.cta-spacer { height: 64px; flex: none; }
+.cta-spacer { height: calc(64px + var(--sab)); flex: none; }
 .cta-bar {
   position: fixed;
   bottom: 0;
@@ -231,7 +231,7 @@ const submitReview = async () => {
   width: 100%;
   max-width: 480px;
   z-index: 20;
-  display: flex; gap: 10px; padding: 10px 16px;
+  display: flex; gap: 10px; padding: 10px 16px calc(10px + var(--sab));
   background: var(--bg); border-top: 1px solid var(--line);
 }
 .cta-main {
