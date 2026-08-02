@@ -19,9 +19,11 @@ const GEAR_CATEGORIES = [
   { label: '睡袋', value: 'sleeping_bag' }
 ]
 
-/** S1/M1 表单默认值（v-model 绑定此形状的副本；日期需用户选择可预报范围内的出行日） */
+/** S1/M1 表单默认值（v-model 绑定此形状的副本；日期默认今天，高德预报仅覆盖未来约 3 天） */
+const todayStr = () => new Date().toLocaleDateString('sv-SE')
+
 export const questFormDefaults = {
-  dateRange: { start: '', end: '', nights: 2 },
+  dateRange: { start: todayStr(), end: '', nights: 2 },
   location: { city: '杭州', district: '西湖区', lat: 30.25, lng: 120.13, useCurrentPosition: false },
   party: { adults: 2, type: 'FRIENDS' },
   budgetPerPerson: { min: 300, max: 500 },
@@ -67,11 +69,19 @@ export async function geocodeCity(city) {
   }
 }
 
+/** 高德天气可预报窗口：今天 ~ 今天+3 天（后端按出行日精确匹配预报，超出会 502） */
+export const FORECAST_MIN_DATE = todayStr()
+export const FORECAST_MAX_DATE = new Date(Date.now() + 3 * 86400000).toLocaleDateString('sv-SE')
+
 /**
  * POST /recommendations/plan（S1 表单提交）
  * 返回视图结构（同 mock.recommendation），并写入共享状态供 S2/S4 使用。
  */
 export async function postRecommendations(form) {
+  if (!form.dateRange.start) throw new Error('请选择出行日期')
+  if (form.dateRange.start < FORECAST_MIN_DATE || form.dateRange.start > FORECAST_MAX_DATE) {
+    throw new Error(`天气只可预报 ${FORECAST_MIN_DATE} ~ ${FORECAST_MAX_DATE}，请把出行日期调整到这个范围内`)
+  }
   // 兴趣写入偏好画像，供推荐引擎做兴趣匹配
   await api('/profile/preferences', { method: 'PUT', body: { interests: form.interests } }).catch(() => {})
   // 未点「定位」时按城市文本解析坐标（用户手输城市不会自动改坐标）

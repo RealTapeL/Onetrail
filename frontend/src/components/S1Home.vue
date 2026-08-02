@@ -7,7 +7,10 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import HudNav from './HudNav.vue'
 import { fetchBrandStats, postRecommendations } from '../api/index'
-import { questFormDefaults } from '../api/index'
+import { questFormDefaults, FORECAST_MIN_DATE, FORECAST_MAX_DATE } from '../api/index'
+
+const forecastMin = FORECAST_MIN_DATE
+const forecastMax = FORECAST_MAX_DATE
 
 const router = useRouter()
 const form = reactive(JSON.parse(JSON.stringify(questFormDefaults)))
@@ -114,7 +117,8 @@ const submit = async () => {
         <div class="q-grid">
           <div class="field">
             <div class="f-label">出行日期 · DATE</div>
-            <input type="date" v-model="form.dateRange.start" class="f-input" />
+            <input type="date" v-model="form.dateRange.start" class="f-input"
+                   :min="forecastMin" :max="forecastMax" />
           </div>
           <div class="field">
             <div class="f-label">同行人数 · PARTY</div>

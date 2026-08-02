@@ -6,7 +6,10 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import MHeader from './MHeader.vue'
 import TabBar from './TabBar.vue'
-import { postRecommendations, questFormDefaults } from '../../api/index'
+import { postRecommendations, questFormDefaults, FORECAST_MIN_DATE, FORECAST_MAX_DATE } from '../../api/index'
+
+const forecastMin = FORECAST_MIN_DATE
+const forecastMax = FORECAST_MAX_DATE
 
 const router = useRouter()
 const form = reactive(JSON.parse(JSON.stringify(questFormDefaults)))
@@ -69,7 +72,8 @@ const submit = async () => {
 
         <div class="sec-label"><span class="sec-cn">必填</span><span class="sec-line" /></div>
         <div class="row"><span class="lb">出行日期 · DATE</span>
-          <span class="ctl"><input type="date" v-model="form.dateRange.start" class="in" /></span></div>
+          <span class="ctl"><input type="date" v-model="form.dateRange.start" class="in"
+                 :min="forecastMin" :max="forecastMax" /></span></div>
         <div class="row"><span class="lb">目的地 · LOCATION</span>
           <span class="ctl"><input v-model="form.location.city" class="in" @input="form.location.useCurrentPosition = false" /></span></div>
         <div class="row"><span class="lb">同行人数 · PARTY</span>
