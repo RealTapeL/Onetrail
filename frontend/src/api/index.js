@@ -40,6 +40,32 @@ export const state = reactive({
   budgetCny: null // S1 提交的预算，S6 GAP PICKS 使用
 })
 
+/** 推荐快照持久化：刷新页面后「推荐结果/我的行程」仍可恢复 */
+const PLAN_SNAPSHOT_KEY = 'ot_plan_snapshot'
+
+function persistPlan() {
+  try {
+    localStorage.setItem(PLAN_SNAPSHOT_KEY, JSON.stringify({
+      recommendation: state.recommendation,
+      planByRouteId: state.planByRouteId,
+      selectedRouteId: state.selectedRouteId,
+      budgetCny: state.budgetCny
+    }))
+  } catch { /* 存储失败不影响使用 */ }
+}
+
+;(function restorePlan() {
+  try {
+    const raw = localStorage.getItem(PLAN_SNAPSHOT_KEY)
+    if (!raw) return
+    const snap = JSON.parse(raw)
+    state.recommendation = snap.recommendation || null
+    state.planByRouteId = snap.planByRouteId || {}
+    state.selectedRouteId = snap.selectedRouteId || null
+    state.budgetCny = snap.budgetCny ?? null
+  } catch { /* 快照损坏则忽略 */ }
+})()
+
 /** GET /meta/brand-stats → [{num, label}] */
 export async function fetchBrandStats() {
   const data = await api('/meta/brand-stats', { auth: false })
@@ -146,12 +172,14 @@ export async function postRecommendations(form) {
   state.recommendation = view
   state.planByRouteId = Object.fromEntries(res.routes.map((r) => [r.route_id, r]))
   state.budgetCny = request.budget_cny
+  persistPlan()
   return view
 }
 
 /** GET /routes/{id} + /routes/{id}/reviews → 视图结构（同 mock.routeDetail） */
 export async function fetchRouteDetail(routeId) {
   state.selectedRouteId = routeId
+  persistPlan()
   const [detail, reviewList] = await Promise.all([
     api(`/routes/${routeId}`, { auth: false }),
     api(`/routes/${routeId}/reviews`, { auth: false })
