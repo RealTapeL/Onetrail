@@ -1,5 +1,8 @@
 {
   "appId": "com.onetrail.app",
   "appName": "一径",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http"
+  }
 }
