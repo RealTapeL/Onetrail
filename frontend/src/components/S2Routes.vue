@@ -30,7 +30,7 @@ const recommendation = computed(() => state.recommendation)
       <div v-if="recommendation.notice" class="notice">{{ recommendation.notice }}</div>
 
       <div v-if="recommendation.top.length" class="cards">
-        <article v-for="c in recommendation.top" :key="c.routeId" class="rc"
+        <article v-for="c in recommendation.top" :key="c.routeId" class="rc" :class="{ top1: c.rank === 1 }"
                  @click="$router.push(`/routes/${c.routeId}`)">
           <img class="rc-photo" :src="c.img" :alt="c.name" />
           <div class="rc-top">
@@ -48,6 +48,7 @@ const recommendation = computed(() => state.recommendation)
           </ul>
           <div class="rc-risk">{{ c.risk }}</div>
           <div class="rc-tags">{{ c.tags }}</div>
+          <div class="rc-cta">查看详情 · 加入行程 →</div>
         </article>
       </div>
       <div v-else class="empty panel-d">当前条件下没有满足限制的路线，请调整条件后重试。</div>
@@ -109,6 +110,15 @@ const recommendation = computed(() => state.recommendation)
 .rc-bullets { list-style: none; font-size: 13px; color: var(--ink2); line-height: 1.8; flex: 1; }
 .rc-risk { background: var(--red-bg); border: 1px solid var(--red-line); color: var(--red); font-size: 12px; font-weight: 500; padding: 8px 10px; }
 .rc-tags { font-size: 12px; font-weight: 500; color: var(--t3); }
+/* 显式操作入口：核心动作不再依赖"整卡可点"的隐性交互 */
+.rc-cta {
+  background: var(--ink); color: var(--lime);
+  font-size: 13px; font-weight: 700; text-align: center;
+  padding: 10px;
+}
+/* TOP1 视觉强调：荧光描边 + 更强投影，第一眼落点 */
+.rc.top1 { border-color: var(--lime); box-shadow: 8px 8px 0 var(--lime); }
+.rc.top1 .rc-cta { background: var(--lime); color: var(--ink); }
 
 .alt-sec { padding: 34px var(--content-px) 0; }
 .alt-sec:last-child { padding-bottom: 40px; }

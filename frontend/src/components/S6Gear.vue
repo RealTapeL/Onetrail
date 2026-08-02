@@ -84,10 +84,6 @@ onMounted(async () => {
         <span class="rv-count">已聚合 {{ gearReviews.totalCount.toLocaleString() }} 条真实评价</span>
       </div>
     </div>
-
-    <div class="note-sec">
-      聚合分散装备信息 · 按场景、品牌、价格、重量、防护能力比较 · 与出发方案联动
-    </div>
   </section>
 </template>
 
@@ -127,8 +123,6 @@ onMounted(async () => {
 .rv-label { font-family: var(--silk); font-weight: 700; font-size: 11px; color: var(--lime); }
 .rv-quote { font-size: 13px; font-weight: 500; color: var(--t1); }
 .rv-count { font-size: 12px; color: var(--t2); }
-
-.note-sec { padding: 24px var(--content-px) 32px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--t2); text-align: center; }
 
 .empty {
   margin: 24px var(--content-px);

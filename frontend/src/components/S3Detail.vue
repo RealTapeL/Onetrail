@@ -159,6 +159,18 @@ const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
         </div>
 
         <aside class="rail">
+          <!-- 决策区置顶：值不值得去 + 核心操作，视线第一落点 -->
+          <div class="verdict">
+            <div class="v-q">值不值得去？</div>
+            <div class="v-a">{{ routeDetail.verdict.text }}</div>
+            <div class="v-sub">基于 {{ routeDetail.verdict.voteCount }} 条真实评价聚合</div>
+          </div>
+
+          <div class="rail-cta">
+            <button class="cta-main" @click="$router.push('/trip/current')">加入出行计划</button>
+            <button class="cta-sub" @click="toggleFavorite">{{ favored ? '已收藏' : '收藏' }}</button>
+          </div>
+
           <div class="vote-g">
             <div class="rail-title">路线气质投票 · VIBE VOTE</div>
             <div v-for="v in routeDetail.vibeVote" :key="v.label" class="vote">
@@ -173,17 +185,6 @@ const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
           <div class="who-g">
             <div class="who-label">适合人群 · WHO</div>
             <div class="who-text">{{ routeDetail.suitableFor }}</div>
-          </div>
-
-          <div class="verdict">
-            <div class="v-q">值不值得去？</div>
-            <div class="v-a">{{ routeDetail.verdict.text }}</div>
-            <div class="v-sub">基于 {{ routeDetail.verdict.voteCount }} 条真实评价聚合</div>
-          </div>
-
-          <div class="rail-cta">
-            <button class="cta-main" @click="$router.push('/trip/current')">加入出行计划</button>
-            <button class="cta-sub" @click="toggleFavorite">{{ favored ? '已收藏' : '收藏' }}</button>
           </div>
         </aside>
       </div>

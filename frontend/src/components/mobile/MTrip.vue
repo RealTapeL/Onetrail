@@ -78,17 +78,6 @@ const bell = '<rect x="7" y="1" width="2" height="2"/><rect x="5" y="3" width="6
       </section>
 
       <section class="panel">
-        <div class="p-title">路线海拔剖面 · ELEVATION</div>
-        <svg class="chart" viewBox="0 0 315 64" preserveAspectRatio="none">
-          <path d="M0 52 H28 V44 H60 V50 H100 V34 H140 V40 H180 V24 H220 V32 H260 V18 H315 V26 V64 H0 Z"
-                fill="#0B0B0B" stroke="#A3E635" stroke-width="1.5"/>
-          <rect x="96" y="30" width="4" height="4" fill="#FFD028"/><rect x="176" y="20" width="4" height="4" fill="#FFD028"/>
-          <rect x="256" y="14" width="4" height="4" fill="#FFD028"/>
-        </svg>
-        <div class="p-dim">{{ plan.elevation.caption }}</div>
-      </section>
-
-      <section class="panel">
         <div class="p-title">完成徒步 · 打卡</div>
         <div class="ck-row">
           <button v-for="n in 5" :key="n" class="ck-star" :class="{ on: n <= checkinRating }"
@@ -98,6 +87,17 @@ const bell = '<rect x="7" y="1" width="2" height="2"/><rect x="5" y="3" width="6
           {{ checkinSubmitting ? '打卡中…' : '打卡 · 计入能力画像' }}
         </button>
         <div v-if="checkinMsg" class="ck-msg">{{ checkinMsg }}</div>
+      </section>
+
+      <section class="panel">
+        <div class="p-title">路线海拔剖面 · ELEVATION</div>
+        <svg class="chart" viewBox="0 0 315 64" preserveAspectRatio="none">
+          <path d="M0 52 H28 V44 H60 V50 H100 V34 H140 V40 H180 V24 H220 V32 H260 V18 H315 V26 V64 H0 Z"
+                fill="#0B0B0B" stroke="#A3E635" stroke-width="1.5"/>
+          <rect x="96" y="30" width="4" height="4" fill="#FFD028"/><rect x="176" y="20" width="4" height="4" fill="#FFD028"/>
+          <rect x="256" y="14" width="4" height="4" fill="#FFD028"/>
+        </svg>
+        <div class="p-dim">{{ plan.elevation.caption }}</div>
       </section>
       </template>
     </div>

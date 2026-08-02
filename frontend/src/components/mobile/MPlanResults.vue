@@ -23,7 +23,7 @@ const recommendation = computed(() => state.recommendation)
       <div class="cond">{{ recommendation.conditionSummary }}</div>
       <div v-if="recommendation.notice" class="notice">{{ recommendation.notice }}</div>
 
-      <article v-for="c in recommendation.top" :key="c.routeId" class="rc"
+      <article v-for="c in recommendation.top" :key="c.routeId" class="rc" :class="{ top1: c.rank === 1 }"
                @click="$router.push(`/routes/${c.routeId}`)">
         <img class="rc-img" :src="c.img" :alt="c.name" />
         <div class="rc-top">
@@ -38,6 +38,7 @@ const recommendation = computed(() => state.recommendation)
         </div>
         <div class="rc-risk">{{ c.risk }}</div>
         <div class="rc-tags">{{ c.tags }}</div>
+        <div class="rc-cta">查看详情 · 加入行程 →</div>
       </article>
       <div v-if="!recommendation.top.length" class="empty">当前条件下没有匹配的已发布路线，可调整限制后重试。</div>
 
@@ -89,6 +90,13 @@ const recommendation = computed(() => state.recommendation)
   color: var(--red); font-size: 9px; font-weight: 500; padding: 8px;
 }
 .rc-tags { font-size: 9px; font-weight: 500; color: var(--t3); }
+/* 显式操作入口 + TOP1 强调（与桌面 S2 同一策略） */
+.rc-cta {
+  background: var(--ink); color: var(--lime);
+  font-size: 12px; font-weight: 700; text-align: center; padding: 9px;
+}
+.rc.top1 { border-color: var(--lime); box-shadow: 6px 6px 0 var(--lime); }
+.rc.top1 .rc-cta { background: var(--lime); color: var(--ink); }
 .alt { background: var(--panel); border: 1px solid var(--line); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
 .alt-title { font-size: 13px; font-weight: 700; color: #FFF; }
 .alt-row { display: flex; align-items: center; gap: 10px; cursor: pointer; }

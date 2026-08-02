@@ -161,12 +161,14 @@ const { checkinRating, checkinSubmitting, checkinMsg, checkin } = useCheckin()
 
 .actions { padding: 24px var(--content-px) 40px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 .btn { height: 43px; padding: 0 18px; font-size: 13px; font-weight: 700; }
-.btn.white { background: #FFFFFF; color: var(--ink); }
-.btn.lime { background: var(--lime); border: 2px solid var(--ink); color: var(--ink); }
+.btn.white { background: #FFFFFF; color: var(--ink); margin-left: auto; }
+/* 主操作：完成打卡，全场最大最亮 */
+.btn.lime { background: var(--lime); border: 2px solid var(--ink); color: var(--ink); height: 52px; padding: 0 26px; font-size: 15px; }
 .btn.lime:disabled { opacity: 0.6; }
-.btn.dark { background: var(--bg); color: var(--t4); border: 1px solid var(--line); cursor: not-allowed; }
-.btn.soon { background: var(--panel); color: var(--t4); border: 1px solid var(--line); font-weight: 500; cursor: not-allowed; }
-.checkin { display: flex; align-items: center; gap: 10px; }
+/* 未上线功能：缩小弱化，不与主操作抢注意力 */
+.btn.dark { background: var(--bg); color: var(--t4); border: 1px solid var(--line); cursor: not-allowed; height: 34px; padding: 0 12px; font-size: 11px; font-weight: 500; }
+.btn.soon { background: var(--panel); color: var(--t4); border: 1px solid var(--line); cursor: not-allowed; height: 34px; padding: 0 12px; font-size: 11px; font-weight: 500; }
+.checkin { display: flex; align-items: center; gap: 12px; }
 .ck-stars { display: inline-flex; }
 .ck-star { font-size: 20px; color: var(--t4); padding: 0 2px; line-height: 1; }
 .ck-star.on { color: var(--amber); }

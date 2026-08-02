@@ -211,10 +211,12 @@ const submit = async () => {
 .px.lime-w { width: 35px; height: 14px; background: var(--lime); }
 .mtn { position: absolute; left: 0; bottom: 0; width: 100%; height: 210px; }
 
-/* ---- 右：需求输入卡 ---- */
+/* ---- 右：需求输入卡（本页视觉焦点：品牌投影引导视线） ---- */
 .quest {
   flex: 1;
   background: #FFFFFF;
+  border: 2px solid var(--ink);
+  box-shadow: var(--sh-lime-6);
   padding: 28px 32px;
   display: flex;
   flex-direction: column;

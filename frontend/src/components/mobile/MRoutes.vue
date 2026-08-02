@@ -69,8 +69,6 @@ onMounted(() => {
       </article>
       <div v-if="!items.length" class="empty">暂无符合条件的已发布路线。</div>
 
-      <button class="pub-btn" @click="$router.push('/routes/new')">+ 发布我的路线</button>
-
       <section class="pulse">
         <div class="p-title">热门路线 · TOP</div>
         <div v-for="(r, i) in pulse.hot_routes" :key="r.id" class="pr-row"
@@ -95,6 +93,8 @@ onMounted(() => {
         </template>
         <div v-else class="prv-text">还没有社区评价，走完一条路线后欢迎留下第一条。</div>
       </section>
+
+      <button class="pub-btn" @click="$router.push('/routes/new')">+ 发布我的路线</button>
     </div>
     <TabBar />
   </div>
@@ -129,8 +129,9 @@ onMounted(() => {
 .card-meta { font-size: 11px; color: var(--t2); }
 
 .pub-btn {
-  background: var(--lime); border: 2px solid var(--ink); box-shadow: var(--sh-lime-4);
-  padding: 12px; font-size: 13px; font-weight: 700; color: var(--ink); cursor: pointer;
+  align-self: flex-start;
+  background: transparent; border: 1px dashed var(--t3);
+  padding: 8px 14px; font-size: 11px; font-weight: 500; color: var(--t2); cursor: pointer;
 }
 
 .pulse {

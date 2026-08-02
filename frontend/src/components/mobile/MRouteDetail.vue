@@ -82,11 +82,11 @@ const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
     <div class="m-body">
       <div class="d-title">{{ routeDetail.name }}</div>
 
-      <section class="stats">
-        <div v-for="s in routeDetail.stats" :key="s.label" class="stat">
-          <div class="s-label">{{ s.label }}</div>
-          <div class="s-value">{{ s.value }}</div>
-        </div>
+      <!-- 决策条：本页最重要的问题，放在标题正下方 -->
+      <section class="decide">
+        <div class="dc-q">值不值得去？</div>
+        <div class="dc-a">{{ routeDetail.verdict.text }}</div>
+        <div class="dc-s">基于 {{ routeDetail.verdict.voteCount.toLocaleString() }} 票社区共识</div>
       </section>
 
       <!-- 评分面板：大分数 + 星级 + 分布条 -->
@@ -111,6 +111,13 @@ const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
         <div v-else class="p-dim">暂无评分 —— 走完这条路线后欢迎留下第一条评价</div>
       </section>
 
+      <section class="stats">
+        <div v-for="s in routeDetail.stats" :key="s.label" class="stat">
+          <div class="s-label">{{ s.label }}</div>
+          <div class="s-value">{{ s.value }}</div>
+        </div>
+      </section>
+
       <section class="panel">
         <div class="p-title">地形与安全 · TERRAIN &amp; SAFETY</div>
         <div class="t-chips">
@@ -127,11 +134,6 @@ const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
         <div v-for="v in routeDetail.vibeVote" :key="v.label" class="v-row">
           <div class="v-label">{{ v.label }} · {{ v.percent }}%</div>
           <div class="v-track"><div class="v-fill" :class="{ amber: !v.lime }" :style="{ width: v.percent + '%' }" /></div>
-        </div>
-        <div class="verdict">
-          <div class="vd-q">值不值得去？</div>
-          <div class="vd-a">{{ routeDetail.verdict.text }}</div>
-          <div class="vd-s">基于 {{ routeDetail.verdict.voteCount.toLocaleString() }} 票社区共识投票</div>
         </div>
       </section>
 
@@ -226,10 +228,14 @@ const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
 .v-track { height: 8px; background: var(--track); }
 .v-fill { height: 100%; background: var(--lime); }
 .v-fill.amber { background: var(--amber); }
-.verdict { background: var(--bg); padding: 12px; display: flex; flex-direction: column; gap: 4px; }
-.vd-q { font-size: 10px; font-weight: 500; color: var(--t2); }
-.vd-a { font-size: 20px; font-weight: 900; color: var(--lime); }
-.vd-s { font-size: 9px; color: var(--t2); }
+/* 决策条：标题正下方的视觉焦点（荧光底 + 大字号结论） */
+.decide {
+  background: var(--lime); border: 2px solid var(--ink); box-shadow: var(--sh-ink-3);
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;
+}
+.dc-q { font-size: 11px; font-weight: 500; color: var(--ink2); }
+.dc-a { font-size: 24px; font-weight: 900; color: var(--ink); }
+.dc-s { font-size: 10px; font-weight: 500; color: var(--ink2); }
 .r-meta { font-size: 10px; font-weight: 700; color: var(--lime); }
 .wr-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .wr-star { font-size: 20px; color: var(--t4); padding: 0 2px; line-height: 1; }
