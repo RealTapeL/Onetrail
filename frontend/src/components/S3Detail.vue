@@ -5,7 +5,8 @@
 import { ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import HudNav from './HudNav.vue'
-import { fetchRouteDetail, IMPRESSION_OPTIONS, postRouteReview, setFavorite } from '../api/index'
+import { fetchRouteDetail, IMPRESSION_OPTIONS, setFavorite } from '../api/index'
+import { useRouteReview } from '../composables/useRouteReview'
 
 const route = useRoute()
 const routeDetail = ref(null)
@@ -45,37 +46,11 @@ const toggleFavorite = async () => {
 }
 
 // ---- 写评价 / 气质投票 ----
-const reviewRating = ref(5)
-const reviewTags = ref([])
-const reviewContent = ref('')
-const reviewSubmitting = ref(false)
-const reviewMsg = ref('')
-
-const toggleTag = (tag) => {
-  const i = reviewTags.value.indexOf(tag)
-  i >= 0 ? reviewTags.value.splice(i, 1) : reviewTags.value.push(tag)
-}
-
-const submitReview = async () => {
-  if (reviewSubmitting.value) return
-  reviewSubmitting.value = true
-  reviewMsg.value = ''
-  try {
-    await postRouteReview(route.params.id, {
-      rating: reviewRating.value,
-      content: reviewContent.value.trim(),
-      impressionTags: reviewTags.value
-    })
-    reviewContent.value = ''
-    reviewTags.value = []
-    reviewMsg.value = '评价已提交，感谢分享'
-    await load(route.params.id)
-  } catch (err) {
-    reviewMsg.value = err.message || '提交失败，请稍后重试'
-  } finally {
-    reviewSubmitting.value = false
-  }
-}
+const { reviewRating, reviewTags, reviewContent, reviewSubmitting, reviewMsg, toggleTag, submitReview } =
+  useRouteReview(() => route.params.id, {
+    successText: '评价已提交，感谢分享',
+    onSubmitted: () => load(route.params.id)
+  })
 </script>
 
 <template>
@@ -127,7 +102,7 @@ const submitReview = async () => {
 
           <div class="reviews panel-d">
             <div class="ptitle">徒步者评价 · REVIEWS</div>
-            <template v-for="r in routeDetail.reviews" :key="r.author + r.visitedAt">
+            <template v-for="r in routeDetail.reviews" :key="r.id">
               <div class="rv-meta">{{ r.author }} · 评分 {{ r.rating }}/5 · {{ r.visitedAt }}</div>
               <div class="rv-text">{{ r.content }}</div>
             </template>

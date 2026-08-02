@@ -4,7 +4,9 @@
  * 上报本身失败时静默忽略，避免递归报错。
  */
 
-const ENDPOINT = '/api/v1/logs/client'
+// 与 api/http.js 同一套 BASE 解析（不 import http.js，避免循环依赖）
+const BASE = import.meta.env.VITE_API_BASE || '/api/v1'
+const ENDPOINT = `${BASE}/logs/client`
 
 export function reportError(message, { level = 'error', stack = null } = {}) {
   const payload = JSON.stringify({

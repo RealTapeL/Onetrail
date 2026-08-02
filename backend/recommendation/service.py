@@ -69,9 +69,7 @@ def recommend(
 
     distance_limit = _effective_limit(request.max_distance_km, preference.max_distance_km if preference else None)
     elevation_limit = _effective_limit(request.max_elevation_gain_m, preference.max_elevation_gain_m if preference else None)
-    duration_limit = request.max_duration_min if request.max_duration_min is not None else (
-        preference.preferred_duration_min if preference else None
-    )
+    duration_limit = _effective_limit(request.max_duration_min, preference.preferred_duration_min if preference else None)
     candidates = db.scalars(select(HikingRoute)).all()
     route_by_id = {route.id: route for route in candidates}
     tags_by_route = {
@@ -81,14 +79,15 @@ def recommend(
     results: list[RecommendedRoute] = []
     nearest_route_km: float | None = None
     for route in candidates:
+        # 最近距离对全部候选计算：被硬筛排除不代表"附近没有路线"
+        proximity_km = _haversine_km(request.latitude, request.longitude, route.start_latitude, route.start_longitude)
+        nearest_route_km = proximity_km if nearest_route_km is None else min(nearest_route_km, proximity_km)
         if distance_limit is not None and route.distance_km > distance_limit:
             continue
         if elevation_limit is not None and route.elevation_gain_m > elevation_limit:
             continue
         if duration_limit is not None and route.estimated_duration_min > duration_limit:
             continue
-        proximity_km = _haversine_km(request.latitude, request.longitude, route.start_latitude, route.start_longitude)
-        nearest_route_km = proximity_km if nearest_route_km is None else min(nearest_route_km, proximity_km)
         score, reasons = _score_route(
             route=route,
             preference=preference,

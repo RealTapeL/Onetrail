@@ -12,7 +12,7 @@ if database_url.startswith("sqlite"):
     engine_options["connect_args"] = {"check_same_thread": False}
 
 engine = create_engine(database_url, **engine_options)
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+SessionLocal = sessionmaker(bind=engine)
 
 
 def get_db() -> Generator[Session, None, None]:

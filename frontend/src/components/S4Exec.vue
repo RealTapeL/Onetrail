@@ -4,13 +4,13 @@
  */
 import { computed, ref } from 'vue'
 import HudNav from './HudNav.vue'
-import { buildPlan, postActivity, setFavorite, state } from '../api/index'
+import { buildPlan, setFavorite, state } from '../api/index'
+import { useCheckin } from '../composables/useCheckin'
 
 const plan = computed(() => buildPlan(state.selectedRouteId))
 const favored = ref(false)
 
 const transitIcons = {
-  train: '<rect x="4" y="3" width="12" height="3"/><rect x="3" y="6" width="14" height="7"/><rect x="5" y="8" width="3" height="3" class="cut"/><rect x="9" y="8" width="3" height="3" class="cut"/><rect x="13" y="8" width="3" height="3" class="cut"/><rect x="5" y="14" width="3" height="2"/><rect x="12" y="14" width="3" height="2"/>',
   metro: '<rect x="5" y="3" width="10" height="10"/><rect x="7" y="5" width="6" height="3" class="cut"/><rect x="7" y="10" width="2" height="2" class="cut"/><rect x="11" y="10" width="2" height="2" class="cut"/><rect x="6" y="14" width="3" height="2"/><rect x="11" y="14" width="3" height="2"/>',
   bus: '<rect x="3" y="4" width="14" height="9"/><rect x="5" y="6" width="3" height="3" class="cut"/><rect x="9" y="6" width="3" height="3" class="cut"/><rect x="13" y="6" width="3" height="3" class="cut"/><rect x="5" y="14" width="3" height="3"/><rect x="12" y="14" width="3" height="3"/>'
 }
@@ -28,30 +28,7 @@ const favoritePlan = async () => {
 }
 
 // ---- 完成徒步 · 打卡（反哺推荐能力画像） ----
-const checkinRating = ref(5)
-const checkinSubmitting = ref(false)
-const checkinMsg = ref('')
-
-const checkin = async () => {
-  const raw = state.planByRouteId[state.selectedRouteId]
-  if (!raw || checkinSubmitting.value) return
-  checkinSubmitting.value = true
-  checkinMsg.value = ''
-  try {
-    await postActivity({
-      routeId: state.selectedRouteId,
-      distanceKm: raw.distance_km,
-      elevationGainM: raw.elevation_gain_m,
-      durationMin: raw.estimated_duration_min,
-      rating: checkinRating.value
-    })
-    checkinMsg.value = '打卡成功，已计入你的徒步能力画像'
-  } catch (err) {
-    checkinMsg.value = err.message || '打卡失败，请稍后重试'
-  } finally {
-    checkinSubmitting.value = false
-  }
-}
+const { checkinRating, checkinSubmitting, checkinMsg, checkin } = useCheckin()
 </script>
 
 <template>

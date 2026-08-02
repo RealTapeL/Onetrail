@@ -80,9 +80,10 @@ export async function registerWith(email, password, displayName) {
   await loginWith(email, password)
 }
 
-/** 退出登录：清除 token 与会话 */
+/** 退出登录：清除 token、会话与推荐快照（防下一用户看到上一用户数据） */
 export function logout() {
   localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem('ot_plan_snapshot')
   session.user = null
   session.error = null
 }

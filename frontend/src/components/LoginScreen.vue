@@ -33,6 +33,7 @@ const submit = async () => {
     errorMsg.value = err.message || '操作失败，请稍后重试'
   } finally {
     submitting.value = false
+    form.password = '' // 页面被 KeepAlive 缓存，避免密码残留
   }
 }
 

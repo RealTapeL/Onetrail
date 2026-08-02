@@ -61,7 +61,6 @@ class RouteDetail(RouteSummary):
     suitable_for: str | None
     video_url: str | None
     tags: list[RouteTagResponse]
-    average_rating: float | None
     review_count: int
     impression_stats: list[ImpressionStat]
 

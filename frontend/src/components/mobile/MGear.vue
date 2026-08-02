@@ -54,6 +54,7 @@ onMounted(async () => {
         </div>
         <a v-if="g.sourceUrl" class="gc-link" :href="g.sourceUrl" target="_blank" rel="noopener">官网查看 →</a>
       </article>
+      <div v-if="!items.length" class="empty">该品类暂无装备数据。</div>
 
       <section class="gap">
         <div class="gap-title">缺口补给建议 · GAP PICKS</div>
@@ -64,7 +65,7 @@ onMounted(async () => {
           </div>
           <span class="gap-price">{{ g.price }}</span>
         </div>
-        <div v-if="!items.length" class="empty">该品类暂无装备数据。</div>
+        <div v-if="!gapPicks.length" class="empty">预算内暂无缺口补给建议。</div>
         <div class="gap-review">{{ gearReviews.quote }} · 已聚合 {{ gearReviews.totalCount.toLocaleString() }} 条真实评价</div>
       </section>
     </div>

@@ -5,10 +5,12 @@
 import { ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import BackHeader from './BackHeader.vue'
-import { fetchRouteDetail, IMPRESSION_OPTIONS, postRouteReview, setFavorite } from '../../api/index'
+import { fetchRouteDetail, IMPRESSION_OPTIONS, setFavorite } from '../../api/index'
+import { useRouteReview } from '../../composables/useRouteReview'
 
 const route = useRoute()
 const routeDetail = ref(null)
+const loadError = ref('')
 const favored = ref(false)
 const shareMsg = ref('')
 
@@ -24,10 +26,11 @@ const share = async () => {
 
 const load = async (id) => {
   routeDetail.value = null
+  loadError.value = ''
   try {
     routeDetail.value = await fetchRouteDetail(id)
-  } catch {
-    routeDetail.value = null
+  } catch (err) {
+    loadError.value = err.message || '路线详情加载失败，请稍后重试'
   }
 }
 
@@ -44,37 +47,8 @@ const toggleFavorite = async () => {
 }
 
 // ---- 写评价 / 气质投票 ----
-const reviewRating = ref(5)
-const reviewTags = ref([])
-const reviewContent = ref('')
-const reviewSubmitting = ref(false)
-const reviewMsg = ref('')
-
-const toggleTag = (tag) => {
-  const i = reviewTags.value.indexOf(tag)
-  i >= 0 ? reviewTags.value.splice(i, 1) : reviewTags.value.push(tag)
-}
-
-const submitReview = async () => {
-  if (reviewSubmitting.value) return
-  reviewSubmitting.value = true
-  reviewMsg.value = ''
-  try {
-    await postRouteReview(route.params.id, {
-      rating: reviewRating.value,
-      content: reviewContent.value.trim(),
-      impressionTags: reviewTags.value
-    })
-    reviewContent.value = ''
-    reviewTags.value = []
-    reviewMsg.value = '评价已提交'
-    await load(route.params.id)
-  } catch (err) {
-    reviewMsg.value = err.message || '提交失败，请稍后重试'
-  } finally {
-    reviewSubmitting.value = false
-  }
-}
+const { reviewRating, reviewTags, reviewContent, reviewSubmitting, reviewMsg, toggleTag, submitReview } =
+  useRouteReview(() => route.params.id, { onSubmitted: () => load(route.params.id) })
 </script>
 
 <template>
@@ -85,7 +59,11 @@ const submitReview = async () => {
       <button class="share-btn" @click="share">{{ shareMsg || '分享' }}</button>
     </BackHeader>
 
-    <div v-if="!routeDetail" class="m-body"><div class="loading">加载中…</div></div>
+    <div v-if="loadError" class="m-body">
+      <div class="loading">{{ loadError }}</div>
+      <button class="share-btn retry" @click="load(route.params.id)">重试</button>
+    </div>
+    <div v-else-if="!routeDetail" class="m-body"><div class="loading">加载中…</div></div>
     <template v-else>
     <div class="hero">
       <img class="hero-img" :src="routeDetail.coverImage" :alt="routeDetail.name" />
@@ -131,7 +109,7 @@ const submitReview = async () => {
 
       <section class="panel">
         <div class="p-title">徒步者评价 · REVIEWS</div>
-        <template v-for="r in routeDetail.reviews" :key="r.author">
+        <template v-for="r in routeDetail.reviews" :key="r.id">
           <div class="r-meta">{{ r.author }} · 评分 {{ r.rating }}/5 · {{ r.visitedAt }}</div>
           <div class="p-dim">{{ r.content }}</div>
         </template>
@@ -242,4 +220,5 @@ const submitReview = async () => {
 .cta-sub { width: 76px; height: 44px; background: #FFF; border: 2px solid var(--ink); font-size: 13px; font-weight: 700; color: var(--ink); }
 .cta-sub.on { background: var(--lime); }
 .loading { font-size: 11px; color: var(--t2); }
+.retry { margin-top: 10px; align-self: flex-start; }
 </style>

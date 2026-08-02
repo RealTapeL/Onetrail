@@ -107,7 +107,6 @@ onMounted(() => {
   background: #FFF; border: 2px solid var(--ink); box-shadow: var(--sh-lime-4);
   display: flex; align-items: center; padding: 0 12px;
 }
-.ph { font-size: 12px; color: #9A9A9A; }
 .search-real { width: 100%; border: none; background: none; font-size: 12px; color: var(--ink); }
 .search-real:focus { outline: none; }
 .empty { font-size: 11px; color: var(--t2); }

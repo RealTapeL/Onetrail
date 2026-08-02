@@ -2,6 +2,7 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from core.security import get_current_user
@@ -124,7 +125,19 @@ def post_favorite(
         return FavoriteResponse(route_id=route_id, created_at=favorite.created_at)
     favorite = RouteFavorite(route_id=route_id, user_id=current_user.id)
     db.add(favorite)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # 并发下重复收藏撞唯一约束，按已收藏返回
+        db.rollback()
+        favorite = db.scalar(
+            select(RouteFavorite).where(
+                RouteFavorite.route_id == route_id,
+                RouteFavorite.user_id == current_user.id,
+            )
+        )
+        response.status_code = status.HTTP_200_OK
+        return FavoriteResponse(route_id=route_id, created_at=favorite.created_at)
     db.refresh(favorite)
     return FavoriteResponse(route_id=route_id, created_at=favorite.created_at)
 

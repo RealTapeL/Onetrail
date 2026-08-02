@@ -2,6 +2,7 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from core.security import create_access_token, get_current_user, hash_password, verify_password
@@ -26,7 +27,12 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> User:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="邮箱已注册")
     user = User(email=payload.email, display_name=payload.display_name, password_hash=hash_password(payload.password))
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # 并发下同邮箱注册撞唯一约束
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="邮箱已注册") from None
     db.refresh(user)
     return user
 
@@ -64,12 +70,21 @@ def update_preferences(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> PreferenceResponse:
+    # 只更新请求中显式传入的字段，避免部分提交抹掉已保存的其他偏好
+    provided = payload.model_dump(exclude_unset=True)
     preference = db.get(HikingPreference, current_user.id) or HikingPreference(user_id=current_user.id)
-    preference.max_distance_km = payload.max_distance_km
-    preference.max_elevation_gain_m = payload.max_elevation_gain_m
-    preference.preferred_duration_min = payload.preferred_duration_min
-    preference.difficulty_preference = payload.difficulty_preference
-    preference.interests = json.dumps(payload.interests, ensure_ascii=False)
+    for field in ("max_distance_km", "max_elevation_gain_m", "preferred_duration_min", "difficulty_preference"):
+        if field in provided:
+            setattr(preference, field, provided[field])
+    if "interests" in provided:
+        preference.interests = json.dumps(provided["interests"], ensure_ascii=False)
     db.add(preference)
     db.commit()
-    return PreferenceResponse(**payload.model_dump())
+    db.refresh(preference)
+    return PreferenceResponse(
+        max_distance_km=preference.max_distance_km,
+        max_elevation_gain_m=preference.max_elevation_gain_m,
+        preferred_duration_min=preference.preferred_duration_min,
+        difficulty_preference=preference.difficulty_preference,
+        interests=json.loads(preference.interests or "[]"),
+    )

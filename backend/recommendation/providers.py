@@ -131,16 +131,20 @@ class AmapMapProvider:
     ) -> list[TransportOption]:
         origin = f"{origin_longitude},{origin_latitude}"
         destination = f"{destination_longitude},{destination_latitude}"
+        options: list[TransportOption] = []
+        # 驾车与公交各自独立尝试：单一渠道失败（如无公交覆盖）不应拖垮另一渠道
         try:
             driving = self.client.driving_route(origin, destination)
+            driving_path = (driving.get("route", {}).get("paths") or [{}])[0]
+            options.append(_transport("驾车", driving_path, steps=_driving_steps(driving_path)))
+        except AmapRequestError:
+            pass
+        try:
             transit = self.client.transit_route(origin, destination, city)
-        except AmapRequestError as exc:
-            raise ProviderRequestError(str(exc)) from exc
-        options: list[TransportOption] = []
-        driving_path = (driving.get("route", {}).get("paths") or [{}])[0]
-        options.append(_transport("驾车", driving_path, steps=_driving_steps(driving_path)))
-        transit_path = (transit.get("route", {}).get("transits") or [{}])[0]
-        options.append(_transport("公交/地铁", transit_path, steps=_transit_steps(transit_path)))
+            transit_path = (transit.get("route", {}).get("transits") or [{}])[0]
+            options.append(_transport("公交/地铁", transit_path, steps=_transit_steps(transit_path)))
+        except AmapRequestError:
+            pass
         return [option for option in options if option.distance_km is not None or option.duration_min is not None]
 
     def get_supply_points(self, latitude: float, longitude: float) -> list[SupplyPoint]:

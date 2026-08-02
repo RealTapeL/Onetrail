@@ -1,7 +1,7 @@
 import json
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -83,23 +83,25 @@ def community_pulse(db: Session = Depends(get_db)) -> dict:
 
 
 class ClientLogPayload(BaseModel):
-    level: str = "error"
-    message: str
-    stack: str | None = None
-    url: str | None = None
-    ts: str | None = None
+    level: str = Field(default="error", max_length=10)
+    message: str = Field(max_length=2000)
+    stack: str | None = Field(default=None, max_length=4000)
+    url: str | None = Field(default=None, max_length=500)
+    ts: str | None = Field(default=None, max_length=40)
 
 
 @logs_router.post("/client", status_code=204)
 def client_log(payload: ClientLogPayload) -> None:
-    """接收前端上报的运行时错误，写入 logs/frontend.log。本地开发用，无需鉴权。"""
+    """接收前端上报的运行时错误，写入 logs/frontend.log。无需鉴权，字段限长防灌水。"""
     level = payload.level.lower()
     log = get_client_logger().error if level in ("error", "fatal") else get_client_logger().warning
-    parts = [payload.message]
+    # 换行替换为空格，防止伪造多行日志
+    clean = lambda s: s.replace("\n", " ⏎ ") if s else s
+    parts = [clean(payload.message)]
     if payload.url:
-        parts.append(f"url={payload.url}")
+        parts.append(f"url={clean(payload.url)}")
     if payload.ts:
         parts.append(f"ts={payload.ts}")
     if payload.stack:
-        parts.append(f"stack={payload.stack}")
+        parts.append(f"stack={clean(payload.stack)}")
     log(" | ".join(parts))

@@ -23,10 +23,10 @@ const GEAR_CATEGORIES = [
 const todayStr = () => new Date().toLocaleDateString('sv-SE')
 
 export const questFormDefaults = {
-  dateRange: { start: todayStr(), end: '', nights: 2 },
+  dateRange: { start: todayStr() },
   location: { city: '杭州', district: '西湖区', lat: 30.25, lng: 120.13, useCurrentPosition: false },
-  party: { adults: 2, type: 'FRIENDS' },
-  budgetPerPerson: { min: 300, max: 500 },
+  party: { adults: 2 },
+  budgetPerPerson: { max: 500 },
   fitnessLevel: 3,
   interests: ['瀑布', '竹林'],
   ownedGear: ['登山鞋', '背包', '登山杖']
@@ -37,7 +37,9 @@ export const state = reactive({
   recommendation: null, // 视图结构（同 mock.recommendation）
   planByRouteId: {}, // routeId -> 后端 RecommendedRoute 原始对象（S4 数据源）
   selectedRouteId: null,
-  budgetCny: null // S1 提交的预算，S6 GAP PICKS 使用
+  budgetCny: null, // S1 提交的预算，S6 GAP PICKS 使用
+  travelDate: null, // S1 提交的出行日期（buildPlan 标题用）
+  groupSize: null // S1 提交的同行人数（buildPlan 标题用）
 })
 
 /** 推荐快照持久化：刷新页面后「推荐结果/我的行程」仍可恢复 */
@@ -49,7 +51,9 @@ function persistPlan() {
       recommendation: state.recommendation,
       planByRouteId: state.planByRouteId,
       selectedRouteId: state.selectedRouteId,
-      budgetCny: state.budgetCny
+      budgetCny: state.budgetCny,
+      travelDate: state.travelDate,
+      groupSize: state.groupSize
     }))
   } catch { /* 存储失败不影响使用 */ }
 }
@@ -63,6 +67,8 @@ function persistPlan() {
     state.planByRouteId = snap.planByRouteId || {}
     state.selectedRouteId = snap.selectedRouteId || null
     state.budgetCny = snap.budgetCny ?? null
+    state.travelDate = snap.travelDate ?? null
+    state.groupSize = snap.groupSize ?? null
   } catch { /* 快照损坏则忽略 */ }
 })()
 
@@ -105,8 +111,11 @@ export const FORECAST_MAX_DATE = new Date(Date.now() + 3 * 86400000).toLocaleDat
  */
 export async function postRecommendations(form) {
   if (!form.dateRange.start) throw new Error('请选择出行日期')
-  if (form.dateRange.start < FORECAST_MIN_DATE || form.dateRange.start > FORECAST_MAX_DATE) {
-    throw new Error(`天气只可预报 ${FORECAST_MIN_DATE} ~ ${FORECAST_MAX_DATE}，请把出行日期调整到这个范围内`)
+  // 预报窗口按提交时现算（模块级常量仅是 input 的 min/max 展示用，刷新前不更新）
+  const forecastMin = todayStr()
+  const forecastMax = new Date(Date.now() + 3 * 86400000).toLocaleDateString('sv-SE')
+  if (form.dateRange.start < forecastMin || form.dateRange.start > forecastMax) {
+    throw new Error(`天气只可预报 ${forecastMin} ~ ${forecastMax}，请把出行日期调整到这个范围内`)
   }
   // 兴趣写入偏好画像，供推荐引擎做兴趣匹配
   await api('/profile/preferences', { method: 'PUT', body: { interests: form.interests } }).catch(() => {})
@@ -172,6 +181,8 @@ export async function postRecommendations(form) {
   state.recommendation = view
   state.planByRouteId = Object.fromEntries(res.routes.map((r) => [r.route_id, r]))
   state.budgetCny = request.budget_cny
+  state.travelDate = request.travel_date
+  state.groupSize = request.group_size
   persistPlan()
   return view
 }
@@ -184,6 +195,20 @@ export async function fetchRouteDetail(routeId) {
     api(`/routes/${routeId}`, { auth: false }),
     api(`/routes/${routeId}/reviews`, { auth: false })
   ])
+  // 非推荐来源（路线库/收藏）进入详情时补一份最小计划数据，「加入出行计划」不再落空页
+  if (!state.planByRouteId[detail.id]) {
+    state.planByRouteId[detail.id] = {
+      route_id: detail.id,
+      title: detail.title,
+      distance_km: detail.distance_km,
+      estimated_duration_min: detail.estimated_duration_min,
+      elevation_gain_m: detail.elevation_gain_m,
+      transport_options: [],
+      supply_points: [],
+      equipment_suggestions: []
+    }
+    persistPlan()
+  }
   const total = detail.review_count || 0
   const avg = detail.average_rating
   return {
@@ -209,6 +234,7 @@ export async function fetchRouteDetail(routeId) {
     },
     videoUrl: detail.video_url || null,
     reviews: reviewList.map((r) => ({
+      id: r.id,
       author: '徒步者',
       rating: r.rating,
       visitedAt: r.created_at ? r.created_at.slice(0, 10) : '',
@@ -244,7 +270,7 @@ export async function postActivity({ routeId, distanceKm, elevationGainM, durati
     method: 'POST',
     body: {
       route_id: routeId ?? null,
-      completed_on: new Date().toISOString().slice(0, 10),
+      completed_on: todayStr(),
       distance_km: distanceKm,
       elevation_gain_m: elevationGainM,
       duration_min: durationMin,
@@ -300,9 +326,9 @@ export async function fetchWeatherTip(latitude, longitude) {
 export function buildPlan(routeId) {
   const r = state.planByRouteId[routeId]
   if (!r) return null
-  const rec = state.recommendation
-  const date = rec?.conditionSummary?.split(' · ')[0] || ''
-  const group = rec?.conditionSummary?.match(/(\d+) 人/)?.[1] || '1'
+  const date = state.travelDate
+  const group = state.groupSize
+  const title = date ? `${r.title} · ${date} 出发 · ${group || 1} 人` : `${r.title} · 出行计划`
   // 交通耗时取公交方案，无则驾车；用于把演示时间线换成按真实耗时估算的排期
   const transitMin =
     r.transport_options.find((t) => t.mode.includes('公交'))?.duration_min ??
@@ -323,7 +349,7 @@ export function buildPlan(routeId) {
   }
   return {
     id: `plan_${routeId}`,
-    title: `${r.title} · ${date} 出发 · ${group} 人`,
+    title,
     transit: r.transport_options.map((t) => ({
       type: t.mode.includes('公交') || t.mode.includes('地铁') ? 'metro' : 'bus',
       line: `${t.mode} · ${t.summary}`,

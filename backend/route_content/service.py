@@ -6,7 +6,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from route_content.models import HikingRoute, RouteReview, RouteTag
-from route_content.schemas import ImpressionStat, RouteCreate, RouteDetail, RouteSummary
+from route_content.schemas import ImpressionStat, ReviewResponse, RouteCreate, RouteDetail, RouteSummary
 
 
 DIFFICULTY_LEVELS = {"easy": 1, "moderate": 2, "hard": 4, "expert": 5}
@@ -40,8 +40,8 @@ def _review_stats(db: Session, route_id: str) -> tuple[float | None, int, list[I
 
 
 def _average_rating(db: Session, route_id: str) -> float | None:
-    ratings = db.scalars(select(RouteReview.rating).where(RouteReview.route_id == route_id)).all()
-    return round(sum(ratings) / len(ratings), 1) if ratings else None
+    average, _, _ = _review_stats(db, route_id)
+    return average
 
 
 def serialize_route_summary(db: Session, route: HikingRoute) -> RouteSummary:
@@ -141,8 +141,6 @@ def list_routes(
 
 
 def serialize_review(review: RouteReview):
-    from route_content.schemas import ReviewResponse
-
     return ReviewResponse(
         id=review.id,
         author_id=review.author_id,
