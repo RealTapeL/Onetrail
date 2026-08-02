@@ -5,16 +5,14 @@
 import { ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import HudNav from './HudNav.vue'
-import { fetchRouteDetail, setFavorite } from '../api/index'
+import { fetchRouteDetail, IMPRESSION_OPTIONS, postRouteReview, setFavorite } from '../api/index'
 
 const route = useRoute()
 const routeDetail = ref(null)
 const loadError = ref('')
 const favored = ref(false)
 
-watchEffect(async () => {
-  const id = route.params.id
-  if (!id) return
+const load = async (id) => {
   routeDetail.value = null
   loadError.value = ''
   try {
@@ -22,6 +20,10 @@ watchEffect(async () => {
   } catch (err) {
     loadError.value = err.message || '路线加载失败'
   }
+}
+
+watchEffect(() => {
+  if (route.params.id) load(route.params.id)
 })
 
 const toggleFavorite = async () => {
@@ -29,6 +31,39 @@ const toggleFavorite = async () => {
     await setFavorite(route.params.id, !favored.value)
     favored.value = !favored.value
   } catch { /* 未连接后端时保持原状态 */ }
+}
+
+// ---- 写评价 / 气质投票 ----
+const reviewRating = ref(5)
+const reviewTags = ref([])
+const reviewContent = ref('')
+const reviewSubmitting = ref(false)
+const reviewMsg = ref('')
+
+const toggleTag = (tag) => {
+  const i = reviewTags.value.indexOf(tag)
+  i >= 0 ? reviewTags.value.splice(i, 1) : reviewTags.value.push(tag)
+}
+
+const submitReview = async () => {
+  if (reviewSubmitting.value) return
+  reviewSubmitting.value = true
+  reviewMsg.value = ''
+  try {
+    await postRouteReview(route.params.id, {
+      rating: reviewRating.value,
+      content: reviewContent.value.trim(),
+      impressionTags: reviewTags.value
+    })
+    reviewContent.value = ''
+    reviewTags.value = []
+    reviewMsg.value = '评价已提交，感谢分享'
+    await load(route.params.id)
+  } catch (err) {
+    reviewMsg.value = err.message || '提交失败，请稍后重试'
+  } finally {
+    reviewSubmitting.value = false
+  }
 }
 </script>
 
@@ -77,6 +112,28 @@ const toggleFavorite = async () => {
               <div class="rv-text">{{ r.content }}</div>
             </template>
             <div v-if="!routeDetail.reviews.length" class="rv-text">暂无评价，走过这条路线后欢迎留下第一条反馈。</div>
+          </div>
+
+          <div class="write-review panel-d">
+            <div class="ptitle">写评价 · 投一票</div>
+            <div class="wr-row">
+              <span class="wr-label">评分</span>
+              <button v-for="n in 5" :key="n" class="wr-star" :class="{ on: n <= reviewRating }"
+                      @click="reviewRating = n">{{ n <= reviewRating ? '★' : '☆' }}</button>
+            </div>
+            <div class="wr-row">
+              <span class="wr-label">气质</span>
+              <button v-for="t in IMPRESSION_OPTIONS" :key="t" class="wr-chip"
+                      :class="{ on: reviewTags.includes(t) }" @click="toggleTag(t)">{{ t }}</button>
+            </div>
+            <textarea v-model="reviewContent" class="wr-text" rows="3"
+                      placeholder="说说这条路线的真实体验（路况、风景、注意事项…）" />
+            <div class="wr-foot">
+              <span v-if="reviewMsg" class="wr-msg">{{ reviewMsg }}</span>
+              <button class="wr-submit" :disabled="reviewSubmitting" @click="submitReview">
+                {{ reviewSubmitting ? '提交中…' : '提交评价' }}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -134,6 +191,23 @@ const toggleFavorite = async () => {
 .reviews { padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
 .rv-meta { font-size: 12px; font-weight: 700; color: var(--lime); }
 .rv-text { font-size: 12px; color: var(--t2); }
+
+.write-review { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+.wr-row { display: flex; align-items: center; gap: 8px; }
+.wr-label { font-size: 12px; font-weight: 700; color: var(--t1); width: 36px; flex: none; }
+.wr-star { font-size: 22px; color: var(--t4); padding: 0 2px; line-height: 1; }
+.wr-star.on { color: var(--amber); }
+.wr-chip { font-size: 12px; font-weight: 500; color: var(--t1); background: var(--bg); border: 1px solid var(--line); padding: 6px 12px; }
+.wr-chip.on { background: var(--lime); border-color: var(--lime); color: var(--ink); font-weight: 700; }
+.wr-text {
+  background: var(--bg); border: 1px solid var(--line); color: var(--t1);
+  font-size: 13px; padding: 10px 12px; resize: vertical; font-family: inherit;
+}
+.wr-text:focus { outline: none; border-color: var(--lime); }
+.wr-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.wr-msg { font-size: 12px; color: var(--lime); }
+.wr-submit { background: var(--lime); border: 2px solid var(--ink); color: var(--ink); font-size: 13px; font-weight: 700; padding: 8px 20px; }
+.wr-submit:disabled { opacity: 0.6; }
 
 .rail {
   width: 416px;

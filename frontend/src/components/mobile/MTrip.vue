@@ -5,7 +5,7 @@
 import { computed, ref } from 'vue'
 import MHeader from './MHeader.vue'
 import TabBar from './TabBar.vue'
-import { buildPlan, state } from '../../api/index'
+import { buildPlan, postActivity, state } from '../../api/index'
 
 const plan = computed(() => buildPlan(state.selectedRouteId))
 const checked = ref(new Set())
@@ -15,6 +15,32 @@ const toggleCheck = (item) => {
   checked.value = next
 }
 const gapCount = computed(() => (plan.value ? plan.value.checklist.length - checked.value.size : 0))
+
+// ---- 完成徒步 · 打卡 ----
+const checkinRating = ref(5)
+const checkinSubmitting = ref(false)
+const checkinMsg = ref('')
+
+const checkin = async () => {
+  const raw = state.planByRouteId[state.selectedRouteId]
+  if (!raw || checkinSubmitting.value) return
+  checkinSubmitting.value = true
+  checkinMsg.value = ''
+  try {
+    await postActivity({
+      routeId: state.selectedRouteId,
+      distanceKm: raw.distance_km,
+      elevationGainM: raw.elevation_gain_m,
+      durationMin: raw.estimated_duration_min,
+      rating: checkinRating.value
+    })
+    checkinMsg.value = '打卡成功，已计入能力画像'
+  } catch (err) {
+    checkinMsg.value = err.message || '打卡失败，请稍后重试'
+  } finally {
+    checkinSubmitting.value = false
+  }
+}
 
 const transitIcons = {
   train: '<rect x="4" y="3" width="12" height="3"/><rect x="3" y="6" width="14" height="7"/><rect x="5" y="8" width="3" height="3" class="cut"/><rect x="9" y="8" width="3" height="3" class="cut"/><rect x="13" y="8" width="3" height="3" class="cut"/><rect x="5" y="14" width="3" height="2"/><rect x="12" y="14" width="3" height="2"/>',
@@ -83,6 +109,18 @@ const bell = '<rect x="7" y="1" width="2" height="2"/><rect x="5" y="3" width="6
         </svg>
         <div class="p-dim">{{ plan.elevation.caption }}</div>
       </section>
+
+      <section class="panel">
+        <div class="p-title">完成徒步 · 打卡</div>
+        <div class="ck-row">
+          <button v-for="n in 5" :key="n" class="ck-star" :class="{ on: n <= checkinRating }"
+                  @click="checkinRating = n">{{ n <= checkinRating ? '★' : '☆' }}</button>
+        </div>
+        <button class="ck-btn" :disabled="checkinSubmitting" @click="checkin">
+          {{ checkinSubmitting ? '打卡中…' : '打卡 · 计入能力画像' }}
+        </button>
+        <div v-if="checkinMsg" class="ck-msg">{{ checkinMsg }}</div>
+      </section>
       </template>
     </div>
     <TabBar />
@@ -115,6 +153,12 @@ const bell = '<rect x="7" y="1" width="2" height="2"/><rect x="5" y="3" width="6
 .gk-text.dim { color: var(--t2); }
 .gap-link { font-size: 10px; font-weight: 700; color: var(--lime); text-align: left; padding: 0; }
 .chart { width: 100%; height: 64px; }
+.ck-row { display: flex; gap: 6px; }
+.ck-star { font-size: 22px; color: var(--t4); padding: 0 2px; line-height: 1; }
+.ck-star.on { color: var(--amber); }
+.ck-btn { height: 40px; background: var(--lime); border: 2px solid var(--ink); color: var(--ink); font-size: 13px; font-weight: 700; }
+.ck-btn:disabled { opacity: 0.6; }
+.ck-msg { font-size: 11px; color: var(--lime); }
 .empty { font-size: 11px; color: var(--t2); line-height: 1.8; display: flex; flex-direction: column; gap: 10px; }
 .empty-btn { align-self: flex-start; font-size: 11px; font-weight: 700; color: var(--lime); padding: 0; }
 </style>

@@ -187,6 +187,32 @@ export async function setFavorite(routeId, favored) {
   await api(`/routes/${routeId}/favorite`, { method: favored ? 'POST' : 'DELETE' })
 }
 
+/** POST /routes/{id}/reviews：写评价 + 气质投票（impression_tags 聚合为投票统计） */
+export async function postRouteReview(routeId, { rating, content, impressionTags }) {
+  await api(`/routes/${routeId}/reviews`, {
+    method: 'POST',
+    body: { rating, content: content || null, impression_tags: impressionTags }
+  })
+}
+
+/** POST /history：徒步打卡（反哺推荐引擎的能力画像） */
+export async function postActivity({ routeId, distanceKm, elevationGainM, durationMin, rating }) {
+  await api('/history', {
+    method: 'POST',
+    body: {
+      route_id: routeId ?? null,
+      completed_on: new Date().toISOString().slice(0, 10),
+      distance_km: distanceKm,
+      elevation_gain_m: elevationGainM,
+      duration_min: durationMin,
+      rating: rating ?? null
+    }
+  })
+}
+
+/** 气质投票候选维度（对齐产品逻辑图：出片/故事/自然体验/体能挑战） */
+export const IMPRESSION_OPTIONS = ['出片', '故事', '自然体验', '体能挑战']
+
 /** GET /routes → 视图结构（同 mock.routeLibrary 的 items） */
 export async function fetchRouteLibrary({ query = '', tag = '', maxDistanceKm = null } = {}) {
   const params = new URLSearchParams({ page: '1', page_size: '12' })

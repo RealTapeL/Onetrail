@@ -4,7 +4,7 @@
  */
 import { computed, ref } from 'vue'
 import HudNav from './HudNav.vue'
-import { buildPlan, setFavorite, state } from '../api/index'
+import { buildPlan, postActivity, setFavorite, state } from '../api/index'
 
 const plan = computed(() => buildPlan(state.selectedRouteId))
 const favored = ref(false)
@@ -25,6 +25,32 @@ const favoritePlan = async () => {
     await setFavorite(state.selectedRouteId, true)
     favored.value = true
   } catch { /* 保持原状态 */ }
+}
+
+// ---- 完成徒步 · 打卡（反哺推荐能力画像） ----
+const checkinRating = ref(5)
+const checkinSubmitting = ref(false)
+const checkinMsg = ref('')
+
+const checkin = async () => {
+  const raw = state.planByRouteId[state.selectedRouteId]
+  if (!raw || checkinSubmitting.value) return
+  checkinSubmitting.value = true
+  checkinMsg.value = ''
+  try {
+    await postActivity({
+      routeId: state.selectedRouteId,
+      distanceKm: raw.distance_km,
+      elevationGainM: raw.elevation_gain_m,
+      durationMin: raw.estimated_duration_min,
+      rating: checkinRating.value
+    })
+    checkinMsg.value = '打卡成功，已计入你的徒步能力画像'
+  } catch (err) {
+    checkinMsg.value = err.message || '打卡失败，请稍后重试'
+  } finally {
+    checkinSubmitting.value = false
+  }
 }
 </script>
 
@@ -102,6 +128,16 @@ const favoritePlan = async () => {
       </div>
 
       <div class="actions">
+        <div class="checkin">
+          <span class="ck-stars">
+            <button v-for="n in 5" :key="n" class="ck-star" :class="{ on: n <= checkinRating }"
+                    @click="checkinRating = n">{{ n <= checkinRating ? '★' : '☆' }}</button>
+          </span>
+          <button class="btn lime" :disabled="checkinSubmitting" @click="checkin">
+            {{ checkinSubmitting ? '打卡中…' : '完成徒步 · 打卡' }}
+          </button>
+          <span v-if="checkinMsg" class="ck-msg">{{ checkinMsg }}</span>
+        </div>
         <button class="btn white" @click="favoritePlan">{{ favored ? '已收藏' : '收藏计划' }}</button>
         <button class="btn dark">导出 PDF · 即将上线</button>
         <button class="btn soon">约伴同行 · 即将上线</button>
@@ -144,11 +180,18 @@ const favoritePlan = async () => {
 .chart svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .elev-cap { font-size: 12px; color: var(--t2); }
 
-.actions { height: 83px; padding: 20px 48px 0; display: flex; gap: 16px; }
+.actions { height: 83px; padding: 20px 48px 0; display: flex; gap: 16px; align-items: center; }
 .btn { height: 43px; padding: 0 18px; font-size: 13px; font-weight: 700; }
 .btn.white { background: #FFFFFF; color: var(--ink); }
+.btn.lime { background: var(--lime); border: 2px solid var(--ink); color: var(--ink); }
+.btn.lime:disabled { opacity: 0.6; }
 .btn.dark { background: var(--bg); color: var(--t4); border: 1px solid var(--line); cursor: not-allowed; }
 .btn.soon { background: var(--panel); color: var(--t4); border: 1px solid var(--line); font-weight: 500; cursor: not-allowed; }
+.checkin { display: flex; align-items: center; gap: 10px; }
+.ck-stars { display: inline-flex; }
+.ck-star { font-size: 20px; color: var(--t4); padding: 0 2px; line-height: 1; }
+.ck-star.on { color: var(--amber); }
+.ck-msg { font-size: 12px; color: var(--lime); max-width: 220px; }
 
 .empty {
   margin: 24px 48px;

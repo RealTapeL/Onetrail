@@ -5,21 +5,23 @@
 import { ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import BackHeader from './BackHeader.vue'
-import { fetchRouteDetail, setFavorite } from '../../api/index'
+import { fetchRouteDetail, IMPRESSION_OPTIONS, postRouteReview, setFavorite } from '../../api/index'
 
 const route = useRoute()
 const routeDetail = ref(null)
 const favored = ref(false)
 
-watchEffect(async () => {
-  const id = Number(route.params.id)
-  if (!id) return
+const load = async (id) => {
   routeDetail.value = null
   try {
     routeDetail.value = await fetchRouteDetail(id)
   } catch {
     routeDetail.value = null
   }
+}
+
+watchEffect(() => {
+  if (route.params.id) load(route.params.id)
 })
 
 const toggleFavorite = async () => {
@@ -28,6 +30,39 @@ const toggleFavorite = async () => {
     await setFavorite(routeDetail.value.id, !favored.value)
     favored.value = !favored.value
   } catch { /* 保持原状态 */ }
+}
+
+// ---- 写评价 / 气质投票 ----
+const reviewRating = ref(5)
+const reviewTags = ref([])
+const reviewContent = ref('')
+const reviewSubmitting = ref(false)
+const reviewMsg = ref('')
+
+const toggleTag = (tag) => {
+  const i = reviewTags.value.indexOf(tag)
+  i >= 0 ? reviewTags.value.splice(i, 1) : reviewTags.value.push(tag)
+}
+
+const submitReview = async () => {
+  if (reviewSubmitting.value) return
+  reviewSubmitting.value = true
+  reviewMsg.value = ''
+  try {
+    await postRouteReview(route.params.id, {
+      rating: reviewRating.value,
+      content: reviewContent.value.trim(),
+      impressionTags: reviewTags.value
+    })
+    reviewContent.value = ''
+    reviewTags.value = []
+    reviewMsg.value = '评价已提交'
+    await load(route.params.id)
+  } catch (err) {
+    reviewMsg.value = err.message || '提交失败，请稍后重试'
+  } finally {
+    reviewSubmitting.value = false
+  }
 }
 </script>
 
@@ -85,6 +120,25 @@ const toggleFavorite = async () => {
         </template>
         <div class="p-dim who">适合人群 · WHO：{{ routeDetail.suitableFor }}</div>
       </section>
+
+      <section class="panel">
+        <div class="p-title">写评价 · 投一票</div>
+        <div class="wr-row">
+          <button v-for="n in 5" :key="n" class="wr-star" :class="{ on: n <= reviewRating }"
+                  @click="reviewRating = n">{{ n <= reviewRating ? '★' : '☆' }}</button>
+        </div>
+        <div class="wr-row">
+          <button v-for="t in IMPRESSION_OPTIONS" :key="t" class="wr-chip"
+                  :class="{ on: reviewTags.includes(t) }" @click="toggleTag(t)">{{ t }}</button>
+        </div>
+        <textarea v-model="reviewContent" class="wr-text" rows="3" placeholder="说说真实体验（路况、风景、注意事项…）" />
+        <div class="wr-foot">
+          <span v-if="reviewMsg" class="wr-msg">{{ reviewMsg }}</span>
+          <button class="wr-submit" :disabled="reviewSubmitting" @click="submitReview">
+            {{ reviewSubmitting ? '提交中…' : '提交' }}
+          </button>
+        </div>
+      </section>
     </div>
 
     <div class="cta-spacer" />
@@ -130,6 +184,20 @@ const toggleFavorite = async () => {
 .vd-a { font-size: 20px; font-weight: 900; color: var(--lime); }
 .vd-s { font-size: 9px; color: var(--t2); }
 .r-meta { font-size: 10px; font-weight: 700; color: var(--lime); }
+.wr-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.wr-star { font-size: 20px; color: var(--t4); padding: 0 2px; line-height: 1; }
+.wr-star.on { color: var(--amber); }
+.wr-chip { font-size: 11px; font-weight: 500; color: var(--t1); background: var(--bg); border: 1px solid var(--line); padding: 5px 10px; }
+.wr-chip.on { background: var(--lime); border-color: var(--lime); color: var(--ink); font-weight: 700; }
+.wr-text {
+  background: var(--bg); border: 1px solid var(--line); color: var(--t1);
+  font-size: 12px; padding: 8px 10px; resize: vertical; font-family: inherit;
+}
+.wr-text:focus { outline: none; border-color: var(--lime); }
+.wr-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.wr-msg { font-size: 11px; color: var(--lime); }
+.wr-submit { background: var(--lime); border: 2px solid var(--ink); color: var(--ink); font-size: 12px; font-weight: 700; padding: 7px 18px; }
+.wr-submit:disabled { opacity: 0.6; }
 .who { border-top: 1px dashed var(--line); padding-top: 8px; }
 .cta-spacer { height: 64px; flex: none; }
 .cta-bar {
