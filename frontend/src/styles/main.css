@@ -45,6 +45,10 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body, #app { min-height: 100%; }
+html, body {
+  overscroll-behavior: none;   /* 原生壳内禁用下拉回弹/越界拖动 */
+  touch-action: manipulation;  /* 禁用双击缩放，保留正常滚动 */
+}
 body {
   background: #000000;
   font-family: var(--cn);
