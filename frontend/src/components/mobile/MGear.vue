@@ -50,7 +50,9 @@ onMounted(async () => {
           <div>{{ g.specs[0] }} · {{ g.specs[1] }}</div>
           <div>{{ g.specs[2] }} · {{ g.specs[3] }}</div>
           <div>{{ g.specs[4] }}</div>
+          <div v-if="g.specs[5]">{{ g.specs[5] }}</div>
         </div>
+        <a v-if="g.sourceUrl" class="gc-link" :href="g.sourceUrl" target="_blank" rel="noopener">官网查看 →</a>
       </article>
 
       <section class="gap">
@@ -84,6 +86,7 @@ onMounted(async () => {
 .gc-badge { align-self: flex-start; background: var(--lime); color: var(--ink); font-size: 9px; font-weight: 700; padding: 4px 8px; }
 .gc-name { font-size: 14px; font-weight: 700; color: var(--ink); }
 .gc-specs { font-size: 10px; color: var(--ink2); line-height: 1.7; }
+.gc-link { font-size: 10px; font-weight: 700; color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
 .gap { background: var(--panel); border: 1px solid var(--line); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
 .gap-title { font-size: 13px; font-weight: 700; color: #FFF; }
 .gap-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }

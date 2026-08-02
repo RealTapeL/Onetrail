@@ -41,6 +41,7 @@ def serialize_equipment(db: Session, item: Equipment) -> EquipmentResponse:
         specifications=json.loads(item.specifications),
         suitable_scenarios=json.loads(item.suitable_scenarios),
         source_url=item.source_url,
+        image_url=item.image_url,
         average_rating=average_rating,
         review_count=review_count,
     )
@@ -85,6 +86,7 @@ def create_equipment(
         specifications=json.dumps(payload.specifications, ensure_ascii=False),
         suitable_scenarios=json.dumps(payload.suitable_scenarios, ensure_ascii=False),
         source_url=str(payload.source_url) if payload.source_url else None,
+        image_url=str(payload.image_url) if payload.image_url else None,
         submitted_by=current_user.id,
     )
     db.add(item)

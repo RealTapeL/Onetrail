@@ -1,0 +1,190 @@
+[
+  {
+    "category": "footwear",
+    "match_name": "迪卡侬 MH100 防水徒步鞋",
+    "payload": {
+      "name": "迪卡侬 男士防水登山遠足鞋 - MH100 - 灰色",
+      "category": "footwear",
+      "brand": "QUECHUA",
+      "price_cny": 321,
+      "weight_g": null,
+      "specifications": {
+        "产品编号": "8503796",
+        "官网港币价": "HK$349",
+        "特性": "吸震性、在露天乾燥。、抓地性、櫻桃紅、每次使用後乾燥。、灰、碳灰、紅、耐用度、輕盈性、防水性",
+        "官网描述": "偶爾會去登山健行，讓身心煥然一新嗎？仰賴我們的靴子 MH100：即使是潮濕天候也很可靠。"
+      },
+      "suitable_scenarios": [
+        "溪谷",
+        "碎石坡",
+        "古道"
+      ],
+      "source_url": "https://www.decathlon.com.hk/p/%E7%94%B7%E5%A3%AB%E9%98%B2%E6%B0%B4%E7%99%BB%E5%B1%B1%E9%81%A0%E8%B6%B3%E9%9E%8B-mh100-%E7%81%B0%E8%89%B2-quechua-8503796.html",
+      "image_url": "https://contents.mediadecathlon.com/p2579144/k$a701f0eb4b0fe79da50bd413919d2286/男士防水登山遠足鞋-mh100-灰色-quechua-8503796.jpg"
+    }
+  },
+  {
+    "category": "footwear",
+    "match_name": null,
+    "payload": {
+      "name": "迪卡侬 男士防水登山遠足鞋 - MH500 MID - 灰色",
+      "category": "footwear",
+      "brand": "QUECHUA",
+      "price_cny": 643,
+      "weight_g": null,
+      "specifications": {
+        "产品编号": "8618769",
+        "官网港币价": "HK$699",
+        "特性": "合腳性、吸震性、在露天乾燥。、抓地力、每次使用後乾燥。、灰、碳灰、耐用度、輕盈性、鐵灰、防水性",
+        "官网描述": "專為在登山步道進行一日健行而設計。\n中筒鞋面為你提供更好的保護和舒適度。"
+      },
+      "suitable_scenarios": [
+        "溪谷",
+        "碎石坡",
+        "古道"
+      ],
+      "source_url": "https://www.decathlon.com.hk/p/%E7%94%B7%E5%A3%AB%E9%98%B2%E6%B0%B4%E7%99%BB%E5%B1%B1%E9%81%A0%E8%B6%B3%E9%9E%8B-mh500-mid-%E7%81%B0%E8%89%B2-quechua-8618769.html",
+      "image_url": "https://contents.mediadecathlon.com/p2578967/k$f685dc82f21dc4360650fe504822636b/男士防水登山遠足鞋-mh500-mid-灰色-quechua-8618769.jpg"
+    }
+  },
+  {
+    "category": "backpack",
+    "match_name": "迪卡侬 MH500 山地徒步背包 40L",
+    "payload": {
+      "name": "迪卡侬 40L 登山背包 MH500",
+      "category": "backpack",
+      "brand": "QUECHUA",
+      "price_cny": 459,
+      "weight_g": null,
+      "specifications": {
+        "产品编号": "8786745",
+        "官网港币价": "HK$499",
+        "特性": "不可漂白。、不要乾洗。、不要熨燙。、啡、在露天乾燥。、多隔層、容量、易開合、洗手。 -最高溫度40°C。、灰、碳灰、耐用、背負舒適、衝擊防護、請勿在旋轉式滾筒烘乾機中滾筒烘乾。、輕盈性、透氣性、駱駝",
+        "官网描述": "我們熱愛登山健行的團隊在白朗峰山腳下設計出這款極為舒適的背包，擁有透氣的拉緊網眼背板，適合經常健行使用。"
+      },
+      "suitable_scenarios": [
+        "露营",
+        "过夜",
+        "山脊"
+      ],
+      "source_url": "https://www.decathlon.com.hk/p/40l-%E7%99%BB%E5%B1%B1%E8%83%8C%E5%8C%85-mh500-quechua-8786745.html",
+      "image_url": "https://contents.mediadecathlon.com/p2579152/k$586ea0dfd4b8b0135ca631f932a8bd2c/40l-登山背包-mh500-quechua-8786745.jpg"
+    }
+  },
+  {
+    "category": "backpack",
+    "match_name": null,
+    "payload": {
+      "name": "迪卡侬 22L 捲蓋式登山遠足背包 - MH500 LIGHT - 灰色",
+      "category": "backpack",
+      "brand": "QUECHUA",
+      "price_cny": 459,
+      "weight_g": null,
+      "specifications": {
+        "产品编号": "8826304",
+        "官网港币价": "HK$499",
+        "特性": "不可漂白。、不要乾洗。、不要熨燙。、在露天乾燥。、多隔層、容量/承載量、洗手。 -最高溫度40°C。、灰、煙燻黑、碳灰、背負舒適、請勿在旋轉式滾筒烘乾機中滾筒烘乾。、輕盈性、透氣性、黑",
+        "官网描述": "這款兼具機能性與輕量設計的背包非常適合登山使用。\n最大的特點是胸前口袋可收納智慧型手機、500ml 軟水瓶及穀物"
+      },
+      "suitable_scenarios": [
+        "露营",
+        "过夜",
+        "山脊"
+      ],
+      "source_url": "https://www.decathlon.com.hk/p/22l-%E6%8D%B2%E8%93%8B%E5%BC%8F%E7%99%BB%E5%B1%B1%E9%81%A0%E8%B6%B3%E8%83%8C%E5%8C%85-mh500-%E7%81%B0%E8%89%B2-quechua-8826304.html",
+      "image_url": "https://contents.mediadecathlon.com/p3080777/k$a690de4bd041148c757753e19aa2d159/22l-捲蓋式登山遠足背包-mh500-light-灰色-quechua-8826304.jpg"
+    }
+  },
+  {
+    "category": "tent",
+    "match_name": null,
+    "payload": {
+      "name": "迪卡侬 2 人用 2 秒快開露營帳篷（超遮陽黑黑帳）",
+      "category": "tent",
+      "brand": "QUECHUA",
+      "price_cny": 919,
+      "weight_g": null,
+      "specifications": {
+        "产品编号": "8553541",
+        "官网港币价": "HK$999",
+        "特性": "不可漂白。、不要乾洗。、不要洗。、不要熨燙。、方便攜帶、易裝卸、深石油、灰藍、熱還原、白、空間舒適度、藍、請勿使用織物柔軟劑。、請勿在旋轉式滾筒烘乾機中滾筒烘乾。、請勿熨燙產品上的印花。、遮光性、防水性、防風、雪白",
+        "官网描述": "想要來一場說走就走的小旅行？\n這款最新的新式快開 2 秒帳篷就是專為設計！"
+      },
+      "suitable_scenarios": [
+        "露营",
+        "过夜"
+      ],
+      "source_url": "https://www.decathlon.com.hk/p/2%E4%BA%BA2%E7%A7%92%E9%9C%B2%E7%87%9F%E5%BF%AB%E9%96%8B%E5%B8%B3easy-fresh-black-quechua-8553541.html",
+      "image_url": "https://contents.mediadecathlon.com/p2579590/k$3a45835c60d271eed886b117a8a4c318/2-人用-2-秒快開露營帳篷-超遮陽黑黑帳-quechua-8553541.jpg"
+    }
+  },
+  {
+    "category": "tent",
+    "match_name": null,
+    "payload": {
+      "name": "迪卡侬 XL號2秒快開露營帳篷FRESH & BLACK－3人用",
+      "category": "tent",
+      "brand": "QUECHUA",
+      "price_cny": 1195,
+      "weight_g": null,
+      "specifications": {
+        "产品编号": "8503973",
+        "官网港币价": "HK$1299",
+        "特性": "不可漂白。、不要乾洗。、不要洗。、不要熨燙。、方便攜帶、易裝卸、熱還原、白、空間舒適度、耐用度、藍、請勿在旋轉式滾筒烘乾機中滾筒烘乾。、遮光性、防水性",
+        "官网描述": "想要有個意想不到的週末嗎？我們的設計師費心設計這款3人用帳篷，讓你可以在數分鐘內快速搭帳。非常容易攜帶！"
+      },
+      "suitable_scenarios": [
+        "露营",
+        "过夜"
+      ],
+      "source_url": "https://www.decathlon.com.hk/p/xl%E8%99%9F2%E7%A7%92%E5%BF%AB%E9%96%8B%E9%9C%B2%E7%87%9F%E5%B8%B3%E7%AF%B7fresh-black-3%E4%BA%BA%E7%94%A8-quechua-8503973.html",
+      "image_url": "https://contents.mediadecathlon.com/p2286531/k$ddb3b53b7de13281ecab55ce5a1490b0/xl號2秒快開露營帳篷fresh-black-3人用-quechua-8503973.jpg"
+    }
+  },
+  {
+    "category": "sleeping_bag",
+    "match_name": "迪卡侬 MT500 0°C 棉睡袋",
+    "payload": {
+      "name": "迪卡侬 0°C 多日登山睡袋 MT500",
+      "category": "sleeping_bag",
+      "brand": "SIMOND",
+      "price_cny": 533,
+      "weight_g": null,
+      "specifications": {
+        "产品编号": "8799901",
+        "官网港币价": "HK$579",
+        "特性": "不可漂白。、不要乾洗。、不要熨燙。、使用便利性、古銅 卡其 綠、可以在旋轉式乾衣機中乾燥。 -低溫，從滾筒中排出的空氣的最高溫度為60°C。、可調節、合適使用溫度、最高洗滌溫度為30°C。 -正常治療。、綠、輕盈性、防潑水力",
+        "官网描述": "這款多日登山睡袋採用木乃伊形狀並帶有包覆式連帽，專為在溫度 -5°C 到 0°C 的夜晚露營而設計。"
+      },
+      "suitable_scenarios": [
+        "露营",
+        "过夜"
+      ],
+      "source_url": "https://www.decathlon.com.hk/p/0-c-%E5%A4%9A%E6%97%A5%E7%99%BB%E5%B1%B1%E7%9D%A1%E8%A2%8B-mt500-simond-8799901.html",
+      "image_url": "https://contents.mediadecathlon.com/p2585156/k$e3f37db5a96e495eaa0562d19aa550d5/0-c-多日登山睡袋-mt500-simond-8799901.jpg"
+    }
+  },
+  {
+    "category": "sleeping_bag",
+    "match_name": null,
+    "payload": {
+      "name": "迪卡侬 5°C 多日登山睡袋 MT500",
+      "category": "sleeping_bag",
+      "brand": "SIMOND",
+      "price_cny": 459,
+      "weight_g": null,
+      "specifications": {
+        "产品编号": "8799899",
+        "官网港币价": "HK$499",
+        "特性": "不可漂白。、不要乾洗。、不要熨燙。、使用便利性、可以在旋轉式乾衣機中乾燥。 -低溫，從滾筒中排出的空氣的最高溫度為60°C。、可調節、合適使用溫度、拉鍊閉合時清洗。、最高洗滌溫度為30°C。 -正常治療。、煙燻黑、輕盈性、防潑水力、黑",
+        "官网描述": "這款多日登山睡袋採用木乃伊形狀並帶有包覆式連帽，讓您在 5°C 以上的溫度下享受一夜好眠。"
+      },
+      "suitable_scenarios": [
+        "露营",
+        "过夜"
+      ],
+      "source_url": "https://www.decathlon.com.hk/p/5-c-%E5%90%88%E6%88%90%E7%BA%96%E7%B6%AD%E5%A4%9A%E6%97%A5%E7%99%BB%E5%B1%B1%E7%9D%A1%E8%A2%8B-mt500-simond-8799899.html",
+      "image_url": "https://contents.mediadecathlon.com/p2585159/k$d4976fdfcecf843f126f11b6183f431f/5-c-多日登山睡袋-mt500-simond-8799899.jpg"
+    }
+  }
+]

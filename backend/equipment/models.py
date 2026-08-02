@@ -19,6 +19,7 @@ class Equipment(Base):
     specifications: Mapped[str] = mapped_column(Text)
     suitable_scenarios: Mapped[str] = mapped_column(Text)
     source_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     submitted_by: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

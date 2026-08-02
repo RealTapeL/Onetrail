@@ -12,6 +12,7 @@ class EquipmentCreate(BaseModel):
     specifications: dict[str, str | int | float | bool] = Field(default_factory=dict)
     suitable_scenarios: list[str] = Field(default_factory=list, max_length=30)
     source_url: HttpUrl | None = None
+    image_url: HttpUrl | None = None
 
 
 class EquipmentResponse(BaseModel):
@@ -26,6 +27,7 @@ class EquipmentResponse(BaseModel):
     specifications: dict[str, str | int | float | bool]
     suitable_scenarios: list[str]
     source_url: str | None
+    image_url: str | None
     average_rating: float | None
     review_count: int
 

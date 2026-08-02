@@ -29,4 +29,6 @@ node_modules/
 # Runtime logs
 logs/
 
-tools/
+tools/*
+# 迪卡侬镜像采集脚本与数据（无敏感信息）单独入库
+!tools/decathlon/

@@ -56,6 +56,7 @@ onMounted(async () => {
         <div class="gc-specs">
           <div v-for="s in g.specs" :key="s">{{ s }}</div>
         </div>
+        <a v-if="g.sourceUrl" class="gc-link" :href="g.sourceUrl" target="_blank" rel="noopener">迪卡侬官网查看 →</a>
       </article>
     </div>
     <div v-else class="empty panel-d">该品类暂无装备数据，可先通过 API 提交装备。</div>
@@ -111,6 +112,7 @@ onMounted(async () => {
 .gc-badge { align-self: flex-start; background: var(--lime); color: var(--ink); font-size: 11px; font-weight: 700; padding: 6px 10px; }
 .gc-name { font-size: 16px; font-weight: 700; color: var(--ink); }
 .gc-specs { font-size: 13px; color: var(--ink2); line-height: 1.9; }
+.gc-link { font-size: 12px; font-weight: 700; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
 .gap-sec { min-height: 212px; padding: 16px 48px 0; }
 .gap-panel { min-height: 180px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }

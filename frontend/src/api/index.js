@@ -359,16 +359,18 @@ export async function fetchGearCompare(categoryValue) {
   )?.id
   return items.slice(0, 3).map((g, i) => ({
     id: g.id,
-    img: COVERS_GEAR[i % COVERS_GEAR.length],
+    img: g.image_url || COVERS_GEAR[i % COVERS_GEAR.length],
     name: g.name,
     best: g.id === bestId && g.average_rating != null,
+    sourceUrl: g.source_url || null,
     specs: [
       g.price_cny != null ? `价格 ¥${g.price_cny}` : '价格 暂无',
       g.weight_g != null ? `重量 ${(g.weight_g / 1000).toFixed(1)}KG` : '重量 暂无',
       `防水 ${g.specifications?.防水 ?? '暂无参数'}`,
       `适合 ${g.suitable_scenarios.join(' · ') || '通用'}`,
-      g.average_rating != null ? `用户评分 ${g.average_rating}` : '暂无评分'
-    ]
+      g.average_rating != null ? `用户评分 ${g.average_rating}` : '暂无评分',
+      g.specifications?.官网港币价 ? `官网价 ${g.specifications.官网港币价}` : null
+    ].filter(Boolean)
   }))
 }
 
