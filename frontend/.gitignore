@@ -3,3 +3,10 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
+
+# Capacitor Android 构建产物
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/app/release/

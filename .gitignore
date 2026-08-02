@@ -32,3 +32,6 @@ logs/
 tools/*
 # 迪卡侬镜像采集脚本与数据（无敏感信息）单独入库
 !tools/decathlon/
+
+# APK 构建产物（本地安装用，不入库）
+*.apk
