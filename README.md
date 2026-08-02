@@ -54,6 +54,19 @@ Onetrail/
 └── docs/                    # 产品逻辑图
 ```
 
+## 一键启动
+
+```bash
+# 只启动基础服务（PostgreSQL 容器，等待健康检查通过）
+bash scripts/start-services.sh
+
+# 一键启动前后端（自动先起 PostgreSQL，再起后端 8000 + 前端 5173）
+# 前台运行并聚合日志输出，Ctrl+C 同时停止前后端（数据库容器保留）
+bash scripts/start-dev.sh
+```
+
+运行日志统一落在 `logs/` 目录：`backend.log`（后端 + 数据库错误，含未捕获异常堆栈）、`frontend.log`（前端上报的运行时错误与 5xx/网络失败）、`*-console.log`（进程控制台输出）。
+
 ## 前端启动
 
 前端是 Vue 3 + Vite + vue-router 单页应用，桌面 6 屏与移动端 6 屏（按视口自动切换）均已接入后端真实数据（预设演示账号自动登录）：

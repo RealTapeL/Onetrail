@@ -1,9 +1,11 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from core.config import get_settings
+from core.logging import setup_logging
 from database.base import Base
 from database.session import engine
 from equipment import models as equipment_models  # noqa: F401 - registers metadata
@@ -12,11 +14,14 @@ from hiking_history import models as hiking_history_models  # noqa: F401 - regis
 from hiking_history.router import router as hiking_history_router
 from identity import models as identity_models  # noqa: F401 - registers metadata
 from identity.router import profile_router, router as identity_router
+from platform_services.router import logs_router as platform_logs_router
 from platform_services.router import meta_router as platform_meta_router
 from platform_services.router import router as platform_router
 from recommendation.router import integration_router, meta_router, router as recommendation_router
 from route_content import models as route_models  # noqa: F401 - registers metadata
 from route_content.router import router as route_router
+
+setup_logging()
 
 
 @asynccontextmanager
@@ -46,3 +51,15 @@ app.include_router(hiking_history_router, prefix="/api/v1")
 app.include_router(integration_router, prefix="/api/v1")
 app.include_router(meta_router, prefix="/api/v1")
 app.include_router(platform_meta_router, prefix="/api/v1")
+app.include_router(platform_logs_router, prefix="/api/v1")
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """兜底：未捕获异常（含数据库错误）记录到 logs/backend.log 后返回 500。"""
+    import logging
+
+    logging.getLogger("onetrail.backend").exception(
+        "未处理异常 %s %s: %s", request.method, request.url.path, exc
+    )
+    return JSONResponse(status_code=500, content={"detail": "服务器内部错误"})

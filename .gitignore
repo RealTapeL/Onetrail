@@ -26,3 +26,6 @@ __pycache__/
 # Frontend dependencies
 node_modules/
 
+# Runtime logs
+logs/
+
