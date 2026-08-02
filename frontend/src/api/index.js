@@ -256,6 +256,16 @@ export async function postActivity({ routeId, distanceKm, elevationGainM, durati
 /** 气质投票候选维度（对齐产品逻辑图：出片/故事/自然体验/体能挑战） */
 export const IMPRESSION_OPTIONS = ['出片', '故事', '自然体验', '体能挑战']
 
+/** GET /meta/community-pulse → 社区动态（热门路线 + 最新评价，真实库数据） */
+export async function fetchCommunityPulse() {
+  return api('/meta/community-pulse', { auth: false })
+}
+
+/** POST /routes：用户发布路线（UGC，需登录；tags 含 category/safety_note） */
+export async function postRoute(payload) {
+  return api('/routes', { method: 'POST', body: payload })
+}
+
 /** GET /routes → 视图结构（同 mock.routeLibrary 的 items） */
 export async function fetchRouteLibrary({ query = '', tag = '', maxDistanceKm = null } = {}) {
   const params = new URLSearchParams({ page: '1', page_size: '12' })

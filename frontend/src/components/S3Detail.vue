@@ -11,6 +11,17 @@ const route = useRoute()
 const routeDetail = ref(null)
 const loadError = ref('')
 const favored = ref(false)
+const shareMsg = ref('')
+
+const share = async () => {
+  try {
+    await navigator.clipboard.writeText(window.location.href)
+    shareMsg.value = '链接已复制'
+  } catch {
+    shareMsg.value = '复制失败，请手动复制地址栏链接'
+  }
+  setTimeout(() => { shareMsg.value = '' }, 2000)
+}
 
 const load = async (id) => {
   routeDetail.value = null
@@ -80,7 +91,11 @@ const submitReview = async () => {
           <div class="sh-title-cn">「03」{{ routeDetail.name }}</div>
           <div class="sh-title-en">ROUTE DETAIL — TRUSTED ARCHIVE</div>
         </div>
-        <span class="sh-chip lime">社区共识：{{ routeDetail.verdict.text }} · {{ routeDetail.verdict.voteCount }} 条评价</span>
+        <div class="head-right">
+          <span class="sh-chip lime">社区共识：{{ routeDetail.verdict.text }} · {{ routeDetail.verdict.voteCount }} 条评价</span>
+          <button class="share-btn" @click="share">分享</button>
+          <span v-if="shareMsg" class="share-msg">{{ shareMsg }}</span>
+        </div>
       </header>
 
       <div class="main-row">
@@ -176,6 +191,13 @@ const submitReview = async () => {
 </template>
 
 <style scoped>
+.head-right { display: flex; align-items: center; gap: 10px; }
+.share-btn {
+  background: none; border: 1px solid var(--lime); color: var(--lime);
+  padding: 8px 14px; font-size: 12px; cursor: pointer;
+}
+.share-btn:hover { background: var(--lime); color: var(--ink); }
+.share-msg { font-size: 11px; color: var(--lime); }
 .main-row { min-height: 768px; padding: 0 48px; display: flex; gap: 24px; align-items: flex-start; }
 .left-col { width: 904px; display: flex; flex-direction: column; gap: 20px; }
 

@@ -10,6 +10,17 @@ import { fetchRouteDetail, IMPRESSION_OPTIONS, postRouteReview, setFavorite } fr
 const route = useRoute()
 const routeDetail = ref(null)
 const favored = ref(false)
+const shareMsg = ref('')
+
+const share = async () => {
+  try {
+    await navigator.clipboard.writeText(window.location.href)
+    shareMsg.value = '已复制'
+  } catch {
+    shareMsg.value = '复制失败'
+  }
+  setTimeout(() => { shareMsg.value = '' }, 2000)
+}
 
 const load = async (id) => {
   routeDetail.value = null
@@ -71,6 +82,7 @@ const submitReview = async () => {
     <BackHeader back-text="返回路线库" to="/routes">
       <span v-if="routeDetail">社区共识：{{ routeDetail.verdict.text }} · {{ routeDetail.verdict.voteCount.toLocaleString() }} 票</span>
       <span v-else>路线详情</span>
+      <button class="share-btn" @click="share">{{ shareMsg || '分享' }}</button>
     </BackHeader>
 
     <div v-if="!routeDetail" class="m-body"><div class="loading">加载中…</div></div>
@@ -161,6 +173,10 @@ const submitReview = async () => {
 .video-chip { position: absolute; left: 12px; top: 12px; background: var(--bg); color: #FFF; font-size: 10px; padding: 5px 10px; text-decoration: none; }
 .t-note { line-height: 1.6; }
 .t-note b { color: var(--red); font-weight: 700; }
+.share-btn {
+  background: none; border: 1px solid var(--lime); color: var(--lime);
+  font-size: 9px; padding: 3px 8px; cursor: pointer;
+}
 .play {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   width: 38px; height: 46px; background: var(--lime); display: grid; place-items: center;

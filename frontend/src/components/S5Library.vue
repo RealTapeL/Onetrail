@@ -4,7 +4,7 @@
  */
 import { onMounted, ref } from 'vue'
 import HudNav from './HudNav.vue'
-import { fetchRouteLibrary, fetchWeatherTip } from '../api/index'
+import { fetchRouteLibrary, fetchWeatherTip, fetchCommunityPulse } from '../api/index'
 
 const scenes = ['瀑布', '古道', '竹林', '云海', '星空']
 const keyword = ref('')
@@ -13,6 +13,7 @@ const limitDistance = ref(false)
 const items = ref([])
 const total = ref(0)
 const weatherTip = ref('')
+const pulse = ref({ hot_routes: [], latest_reviews: [] })
 
 const load = async () => {
   try {
@@ -40,6 +41,7 @@ const toggleDistance = () => {
 
 onMounted(() => {
   load()
+  fetchCommunityPulse().then((p) => { pulse.value = p }).catch(() => {})
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const tip = await fetchWeatherTip(pos.coords.latitude, pos.coords.longitude)
@@ -58,6 +60,7 @@ onMounted(() => {
         <div class="sh-title-cn">「05」路线库 · 搜索发现</div>
         <div class="sh-title-en">ROUTE LIBRARY — SEARCH &amp; DISCOVER</div>
       </div>
+      <button class="pub-btn" @click="$router.push('/routes/new')">+ 发布路线</button>
     </header>
 
     <div class="search-row">
@@ -94,6 +97,34 @@ onMounted(() => {
       </article>
     </div>
     <div v-else class="empty panel-d">暂无符合条件的路线，可先通过 API 创建路线内容。</div>
+
+    <div class="pulse-sec">
+      <div class="pulse panel-d">
+        <div class="ptitle">热门路线 · TOP ROUTES</div>
+        <div v-for="(r, i) in pulse.hot_routes" :key="r.id" class="pr-row"
+             @click="$router.push(`/routes/${r.id}`)">
+          <span class="pr-rank" :class="{ hot: i === 0 }">{{ i + 1 }}</span>
+          <span class="pr-name">{{ r.title }}</span>
+          <span class="pr-meta">
+            {{ r.review_count }} 评价 · {{ r.favorite_count }} 收藏{{ r.average_rating != null ? ` · 评分 ${r.average_rating}` : '' }}
+          </span>
+        </div>
+      </div>
+      <div class="pulse panel-d">
+        <div class="ptitle">最新评价 · LATEST REVIEWS</div>
+        <template v-if="pulse.latest_reviews.length">
+          <div v-for="rv in pulse.latest_reviews" :key="rv.id" class="prv"
+               @click="$router.push(`/routes/${rv.route_id}`)">
+            <div class="prv-meta">
+              {{ rv.author }} · 《{{ rv.route_title }}》 · {{ rv.rating }}/5
+              <span v-if="rv.impression_tags.length" class="prv-tags">{{ rv.impression_tags.join(' · ') }}</span>
+            </div>
+            <div class="prv-text">{{ rv.content || '（未填写评价内容）' }}</div>
+          </div>
+        </template>
+        <div v-else class="prv-text">还没有社区评价，走完一条路线后欢迎留下第一条。</div>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -128,4 +159,23 @@ onMounted(() => {
   font-size: 14px;
   color: var(--t1);
 }
+
+.pub-btn {
+  background: var(--lime); border: 2px solid var(--ink); box-shadow: var(--sh-lime-4);
+  padding: 10px 18px; font-size: 13px; font-weight: 700; color: var(--ink); cursor: pointer;
+}
+
+.pulse-sec { padding: 28px 48px 40px; display: flex; gap: 24px; align-items: flex-start; }
+.pulse { flex: 1; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+.pr-row { display: flex; align-items: baseline; gap: 10px; cursor: pointer; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.pr-row:last-child { border-bottom: none; }
+.pr-rank { font-family: var(--silk); font-size: 12px; color: var(--t3); width: 16px; flex: none; }
+.pr-rank.hot { color: var(--lime); font-weight: 700; }
+.pr-name { font-size: 13px; font-weight: 700; color: #FFFFFF; }
+.pr-meta { margin-left: auto; font-size: 11px; color: var(--t3); white-space: nowrap; }
+.prv { cursor: pointer; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.prv:last-child { border-bottom: none; }
+.prv-meta { font-size: 11px; color: var(--t2); }
+.prv-tags { color: var(--lime); margin-left: 6px; }
+.prv-text { font-size: 12px; color: var(--t1); margin-top: 3px; }
 </style>

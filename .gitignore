@@ -29,3 +29,4 @@ node_modules/
 # Runtime logs
 logs/
 
+tools/

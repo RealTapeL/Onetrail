@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import func, select
@@ -6,7 +8,7 @@ from sqlalchemy.orm import Session
 from core.logging import get_client_logger
 from database.session import get_db
 from identity.models import User
-from route_content.models import HikingRoute
+from route_content.models import HikingRoute, RouteFavorite, RouteReview
 
 router = APIRouter(tags=["基础能力"])
 meta_router = APIRouter(prefix="/meta", tags=["基础能力"])
@@ -24,6 +26,60 @@ def brand_stats(db: Session = Depends(get_db)) -> dict[str, int]:
     hiker_count = db.scalar(select(func.count()).select_from(User)) or 0
     city_count = db.scalar(select(func.count(func.distinct(HikingRoute.region)))) or 0
     return {"routeCount": route_count, "hikerCount": hiker_count, "cityCount": city_count}
+
+
+@meta_router.get("/community-pulse")
+def community_pulse(db: Session = Depends(get_db)) -> dict:
+    """社区动态聚合：热门路线（评价+收藏数排序）与最新评价，均为库内真实数据。"""
+    routes = db.scalars(select(HikingRoute)).all()
+    review_stats = {
+        row[0]: (row[1], row[2])
+        for row in db.execute(
+            select(RouteReview.route_id, func.count(), func.avg(RouteReview.rating)).group_by(RouteReview.route_id)
+        ).all()
+    }
+    fav_counts = {
+        row[0]: row[1]
+        for row in db.execute(select(RouteFavorite.route_id, func.count()).group_by(RouteFavorite.route_id)).all()
+    }
+    hot = sorted(
+        routes,
+        key=lambda r: review_stats.get(r.id, (0, None))[0] + fav_counts.get(r.id, 0),
+        reverse=True,
+    )[:5]
+    hot_routes = [
+        {
+            "id": r.id,
+            "title": r.title,
+            "region": r.region,
+            "review_count": review_stats.get(r.id, (0, None))[0],
+            "average_rating": (
+                round(review_stats[r.id][1], 1) if r.id in review_stats and review_stats[r.id][1] is not None else None
+            ),
+            "favorite_count": fav_counts.get(r.id, 0),
+        }
+        for r in hot
+    ]
+    latest = db.scalars(select(RouteReview).order_by(RouteReview.created_at.desc()).limit(8)).all()
+    route_by_id = {r.id: r for r in routes}
+    author_ids = {rv.author_id for rv in latest}
+    authors = (
+        {u.id: u for u in db.scalars(select(User).where(User.id.in_(author_ids))).all()} if author_ids else {}
+    )
+    latest_reviews = [
+        {
+            "id": rv.id,
+            "route_id": rv.route_id,
+            "route_title": route_by_id[rv.route_id].title if rv.route_id in route_by_id else "未知路线",
+            "author": authors[rv.author_id].display_name if rv.author_id in authors else "徒步者",
+            "rating": rv.rating,
+            "content": rv.content,
+            "impression_tags": json.loads(rv.impression_tags or "[]"),
+            "created_at": rv.created_at.isoformat() if rv.created_at else None,
+        }
+        for rv in latest
+    ]
+    return {"hot_routes": hot_routes, "latest_reviews": latest_reviews}
 
 
 class ClientLogPayload(BaseModel):
