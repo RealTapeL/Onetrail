@@ -10,7 +10,12 @@ onMounted(ensureSession)
 
 <template>
   <div class="stage">
-    <router-view />
+    <router-view v-slot="{ Component, route }">
+      <!-- KeepAlive 按路径缓存页面：侧滑/点返回后恢复原页面内容与状态，不重置 -->
+      <keep-alive :max="20">
+        <component :is="Component" :key="route.fullPath" />
+      </keep-alive>
+    </router-view>
   </div>
 </template>
 

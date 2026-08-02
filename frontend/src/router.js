@@ -41,7 +41,11 @@ const router = createRouter({
     { path: '/gear', component: byDevice(S6Gear, MGear), meta: { bundle: 'gear', title: '装备' } },
     { path: '/:pathMatch(.*)*', redirect: '/plan' }
   ],
-  scrollBehavior: () => ({ top: 0 })
+  scrollBehavior(to, from, savedPosition) {
+    // 返回/前进时恢复原页面滚动位置；新导航一律回顶部
+    if (savedPosition) return savedPosition
+    return { top: 0 }
+  }
 })
 
 // 未登录一律先走登录/注册页
