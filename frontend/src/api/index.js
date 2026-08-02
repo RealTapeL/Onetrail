@@ -265,6 +265,24 @@ export function buildPlan(routeId) {
   const rec = state.recommendation
   const date = rec?.conditionSummary?.split(' · ')[0] || ''
   const group = rec?.conditionSummary?.match(/(\d+) 人/)?.[1] || '1'
+  // 交通耗时取公交方案，无则驾车；用于把演示时间线换成按真实耗时估算的排期
+  const transitMin =
+    r.transport_options.find((t) => t.mode.includes('公交'))?.duration_min ??
+    r.transport_options[0]?.duration_min ??
+    null
+  const fmt = (min) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`
+  const departMin = 8 * 60 + 30 // 默认 08:30 出发（界面注明为假定出发时间）
+  const timeline = []
+  if (transitMin != null) {
+    const arriveMin = departMin + transitMin
+    const finishMin = arriveMin + r.estimated_duration_min
+    timeline.push(
+      { time: fmt(departMin), event: '出发（假定时间，可自定）' },
+      { time: fmt(arriveMin), event: `到达起点 · ${r.transport_options[0]?.mode || '交通'}约 ${transitMin} 分钟` },
+      { time: fmt(finishMin), event: `走完主线 · 路线预计 ${Math.round(r.estimated_duration_min / 60)}H` },
+      { time: fmt(finishMin + transitMin), event: '返程回到市区' }
+    )
+  }
   return {
     id: `plan_${routeId}`,
     title: `${r.title} · ${date} 出发 · ${group} 人`,
@@ -274,18 +292,15 @@ export function buildPlan(routeId) {
       detail:
         [t.distance_km != null ? `${t.distance_km}KM` : null, t.duration_min != null ? `约 ${t.duration_min} 分钟` : null]
           .filter(Boolean)
-          .join(' · ') || '以高德实时方案为准'
+          .join(' · ') || '以高德实时方案为准',
+      steps: t.steps || []
     })),
-    transitTip: '交通方案来自高德实时规划，请以出行当日查询为准',
-    // 时间线无真实数据源，保留演示排期
-    timeline: [
-      { time: '08:30', event: '入口集合' },
-      { time: '09:00', event: '出发' },
-      { time: '12:00', event: '中途午餐补给' },
-      { time: '15:30', event: '到达终点' },
-      { time: '17:00', event: '返程' }
-    ],
-    timelineNote: `预计耗时 ${Math.round(r.estimated_duration_min / 60)}H · 时间线为演示排期，请按实际情况调整`,
+    transitTip: '交通方案与换乘步骤来自高德实时规划，请以出行当日查询为准',
+    // 时间线由高德交通耗时 + 路线预计耗时推算（无固定班次数据，已注明假定出发点）
+    timeline,
+    timelineNote: transitMin != null
+      ? `按高德交通耗时与路线预计 ${Math.round(r.estimated_duration_min / 60)}H 耗时估算，出发时间为假定 08:30`
+      : '暂无交通耗时数据，无法估算排期，请按实际情况安排',
     supplyText: r.supply_points.length
       ? r.supply_points
           .slice(0, 6)

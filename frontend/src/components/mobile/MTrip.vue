@@ -68,6 +68,7 @@ const bell = '<rect x="7" y="1" width="2" height="2"/><rect x="5" y="3" width="6
           <div class="tr-text">
             <div class="tr-l1">{{ t.line }}</div>
             <div class="tr-l2">{{ t.detail }}</div>
+            <div v-for="(s, i) in t.steps" :key="i" class="tr-step">{{ i + 1 }}. {{ s }}</div>
           </div>
         </div>
         <div class="tip">{{ plan.transitTip }}</div>
@@ -137,6 +138,7 @@ const bell = '<rect x="7" y="1" width="2" height="2"/><rect x="5" y="3" width="6
 .tr-icon :deep(.cut) { fill: #0B0B0B; }
 .tr-l1 { font-size: 11px; font-weight: 700; color: var(--t1); }
 .tr-l2 { font-size: 10px; color: var(--t2); margin-top: 2px; }
+.tr-step { font-size: 10px; color: var(--t3); padding-left: 6px; border-left: 2px solid var(--line); margin-top: 2px; }
 .tip { background: var(--bg); border: 1px solid var(--lime); color: var(--lime); font-size: 10px; font-weight: 500; padding: 8px 10px; }
 .tl-row { display: flex; align-items: center; gap: 10px; }
 .tl-time { font-family: var(--vt); font-size: 16px; color: var(--lime); width: 52px; flex: none; }

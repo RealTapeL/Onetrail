@@ -127,6 +127,7 @@ def recommend(
                     distance_km=option.distance_km,
                     duration_min=option.duration_min,
                     summary=option.summary,
+                    steps=list(option.steps),
                 )
                 for option in map_provider.get_transport_options(
                     request.latitude,

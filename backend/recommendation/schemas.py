@@ -30,6 +30,7 @@ class TransportOption(BaseModel):
     distance_km: float | None
     duration_min: int | None
     summary: str
+    steps: list[str] = Field(default_factory=list)
 
 
 class SupplyPoint(BaseModel):

@@ -80,6 +80,7 @@ const checkin = async () => {
             <div class="tr-text">
               <div class="tr-l1">{{ t.line }}</div>
               <div class="tr-l2">{{ t.detail }}</div>
+              <div v-for="(s, i) in t.steps" :key="i" class="tr-step">{{ i + 1 }}. {{ s }}</div>
             </div>
           </div>
           <div v-if="!plan.transit.length" class="tr-l2">暂无交通方案数据</div>
@@ -156,6 +157,7 @@ const checkin = async () => {
 .tr-text { display: flex; flex-direction: column; gap: 4px; }
 .tr-l1 { font-size: 13px; font-weight: 700; color: var(--t1); }
 .tr-l2 { font-size: 12px; color: var(--t2); }
+.tr-step { font-size: 11px; color: var(--t3); padding-left: 8px; border-left: 2px solid var(--line); margin-top: 2px; }
 .col-tip { margin-top: auto; background: var(--bg); border: 1px solid var(--lime); color: var(--lime); font-size: 12px; font-weight: 500; padding: 11px 12px; }
 
 .tl-row { display: flex; align-items: center; gap: 12px; height: 20px; }

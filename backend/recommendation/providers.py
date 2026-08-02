@@ -44,6 +44,7 @@ class TransportOption:
     distance_km: float | None
     duration_min: int | None
     summary: str
+    steps: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -137,9 +138,9 @@ class AmapMapProvider:
             raise ProviderRequestError(str(exc)) from exc
         options: list[TransportOption] = []
         driving_path = (driving.get("route", {}).get("paths") or [{}])[0]
-        options.append(_transport("驾车", driving_path))
+        options.append(_transport("驾车", driving_path, steps=_driving_steps(driving_path)))
         transit_path = (transit.get("route", {}).get("transits") or [{}])[0]
-        options.append(_transport("公交/地铁", transit_path))
+        options.append(_transport("公交/地铁", transit_path, steps=_transit_steps(transit_path)))
         return [option for option in options if option.distance_km is not None or option.duration_min is not None]
 
     def get_supply_points(self, latitude: float, longitude: float) -> list[SupplyPoint]:
@@ -241,7 +242,7 @@ def _number(value: str | None) -> float | None:
     return float(match.group()) if match else None
 
 
-def _transport(mode: str, path: dict) -> TransportOption:
+def _transport(mode: str, path: dict, steps: list[str] | None = None) -> TransportOption:
     distance = _number(path.get("distance"))
     duration = _number(path.get("duration"))
     duration_min = round(duration / 60) if duration is not None else None
@@ -250,7 +251,37 @@ def _transport(mode: str, path: dict) -> TransportOption:
         distance_km=round(distance / 1000, 2) if distance is not None else None,
         duration_min=duration_min,
         summary=f"高德{mode}方案" + (f"，约 {duration_min} 分钟" if duration_min is not None else ""),
+        steps=tuple(steps or []),
     )
+
+
+def _transit_steps(transit: dict) -> list[str]:
+    """高德公交方案 segments → 可读换乘步骤（步行 + 公交/地铁线路、上下车站）。"""
+    steps: list[str] = []
+    for segment in transit.get("segments") or []:
+        walking = segment.get("walking") or {}
+        walk_m = _number(walking.get("distance"))
+        if walk_m and walk_m >= 50:
+            steps.append(f"步行 {round(walk_m)}M")
+        for line in ((segment.get("bus") or {}).get("buslines") or [])[:1]:
+            name = (line.get("name") or "").split("(")[0] or "公交"
+            dep = (line.get("departure_stop") or {}).get("name")
+            arr = (line.get("arrival_stop") or {}).get("name")
+            via = _number(line.get("via_num"))
+            stop_text = f"{dep} → {arr}" if dep and arr else ""
+            via_text = f"，{int(via)} 站" if via else ""
+            steps.append(f"乘 {name}{f'（{stop_text}{via_text}）' if stop_text else ''}")
+    return steps[:8]
+
+
+def _driving_steps(path: dict) -> list[str]:
+    """高德驾车方案前几条真实导航指令。"""
+    instructions = [
+        step.get("instruction")
+        for step in (path.get("steps") or [])
+        if step.get("instruction")
+    ]
+    return instructions[:3]
 
 
 def _caution_notes(weather: str, day_power: str | None, night_power: str | None) -> list[str]:
