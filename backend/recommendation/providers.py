@@ -151,10 +151,10 @@ class AmapMapProvider:
         return [
             SupplyPoint(
                 name=poi.get("name", ""),
-                category=poi.get("type", "补给/服务点"),
-                address=poi.get("address"),
+                category=_text(poi.get("type")) or "补给/服务点",
+                address=_text(poi.get("address")),
                 distance_m=_number(poi.get("distance")),
-                location=poi.get("location"),
+                location=_text(poi.get("location")),
             )
             for poi in payload.get("pois", [])
             if poi.get("name")
@@ -233,6 +233,11 @@ class AmapWeatherProvider:
             temperature_max_c=_number(cast.get("daytemp")),
             wind_power=cast.get("daypower") or cast.get("nightpower"),
         )
+
+
+def _text(value) -> str | None:
+    """高德空字段会返回空数组 [] 而非空字符串，统一归一为 None。"""
+    return value if isinstance(value, str) and value else None
 
 
 def _number(value: str | None) -> float | None:
