@@ -31,6 +31,7 @@ class PreferenceUpsert(BaseModel):
     preferred_duration_min: int | None = Field(default=None, gt=0, le=4320)
     difficulty_preference: str | None = Field(default=None, max_length=30)
     interests: list[str] = Field(default_factory=list, max_length=20)
+    tbti_type: str | None = Field(default=None, max_length=8)
 
 
 class PreferenceResponse(PreferenceUpsert):

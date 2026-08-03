@@ -26,3 +26,5 @@ class HikingPreference(Base):
     preferred_duration_min: Mapped[int | None] = mapped_column(nullable=True)
     difficulty_preference: Mapped[str | None] = mapped_column(String(30), nullable=True)
     interests: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # TBTI 徒步者人格类型（前端测评判型，如 JUAN/WOLF/FOXI），绑定账号跨设备同步
+    tbti_type: Mapped[str | None] = mapped_column(String(8), nullable=True)

@@ -2,11 +2,13 @@
 /** 移动端 slim 头部（logo + 用户 chip），对齐 M1-M4 设计稿 */
 import { useRouter } from 'vue-router'
 import { session, logout } from '../../api/http'
+import { clearTbti } from '../../composables/tbti'
 
 const router = useRouter()
 
 function onLogout() {
   logout()
+  clearTbti()
   router.push('/login')
 }
 </script>

@@ -4,8 +4,12 @@
  */
 import { onMounted } from 'vue'
 import { ensureSession } from './api/http'
+import { syncTbtiFromAccount } from './composables/tbti'
 
-onMounted(ensureSession)
+onMounted(async () => {
+  await ensureSession()
+  syncTbtiFromAccount()
+})
 </script>
 
 <template>

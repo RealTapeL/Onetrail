@@ -5,6 +5,7 @@
  * 结果持久化 localStorage，并映射为推荐表单默认值（体能/兴趣/预算/人数/装备）
  */
 import { ref } from 'vue'
+import { api, hasToken } from '../api/http'
 
 const GEAR_ALL = ['登山鞋', '背包', '登山杖', '冲锋衣', '头灯', '帐篷', '睡袋', '水袋']
 
@@ -93,7 +94,23 @@ export function computeTbti(answers) {
   }
   tbtiResult.value = result
   try { localStorage.setItem(KEY, JSON.stringify(result)) } catch { /* 存储失败不影响使用 */ }
+  // 已登录：同步到账号（跨设备生效），失败不影响本地结果
+  if (hasToken()) {
+    api('/profile/preferences', { method: 'PUT', body: { tbti_type: winner } }).catch(() => {})
+  }
   return result
+}
+
+/** 登录/会话恢复后：从账号拉回 TBTI（账号为准，本地只是未登录时的临时存储） */
+export async function syncTbtiFromAccount() {
+  if (!hasToken()) return
+  try {
+    const pref = await api('/profile/preferences')
+    const def = pref?.tbti_type && TBTI_TYPES[pref.tbti_type]
+    if (!def) return
+    tbtiResult.value = { type: pref.tbti_type, name: def.name, desc: def.desc, testedAt: null }
+    try { localStorage.setItem(KEY, JSON.stringify(tbtiResult.value)) } catch { /* 忽略 */ }
+  } catch { /* 后端不可达时保留本地结果 */ }
 }
 
 export function clearTbti() {

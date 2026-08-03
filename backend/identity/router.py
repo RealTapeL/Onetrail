@@ -61,6 +61,7 @@ def get_preferences(current_user: User = Depends(get_current_user), db: Session 
         preferred_duration_min=preference.preferred_duration_min,
         difficulty_preference=preference.difficulty_preference,
         interests=json.loads(preference.interests or "[]"),
+        tbti_type=preference.tbti_type,
     )
 
 
@@ -73,7 +74,7 @@ def update_preferences(
     # 只更新请求中显式传入的字段，避免部分提交抹掉已保存的其他偏好
     provided = payload.model_dump(exclude_unset=True)
     preference = db.get(HikingPreference, current_user.id) or HikingPreference(user_id=current_user.id)
-    for field in ("max_distance_km", "max_elevation_gain_m", "preferred_duration_min", "difficulty_preference"):
+    for field in ("max_distance_km", "max_elevation_gain_m", "preferred_duration_min", "difficulty_preference", "tbti_type"):
         if field in provided:
             setattr(preference, field, provided[field])
     if "interests" in provided:
@@ -87,4 +88,5 @@ def update_preferences(
         preferred_duration_min=preference.preferred_duration_min,
         difficulty_preference=preference.difficulty_preference,
         interests=json.loads(preference.interests or "[]"),
+        tbti_type=preference.tbti_type,
     )

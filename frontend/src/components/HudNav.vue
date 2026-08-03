@@ -7,6 +7,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { session, logout } from '../api/http'
+import { clearTbti } from '../composables/tbti'
 
 const route = useRoute()
 const router = useRouter()
@@ -14,6 +15,7 @@ const active = computed(() => route.meta.bundle || 'plan')
 
 function onLogout() {
   logout()
+  clearTbti()
   router.push('/login')
 }
 

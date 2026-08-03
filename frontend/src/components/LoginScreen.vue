@@ -3,6 +3,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { loginWith, registerWith } from '../api/http'
+import { syncTbtiFromAccount } from '../composables/tbti'
 
 const router = useRouter()
 const mode = ref('login') // login | register
@@ -28,6 +29,7 @@ const submit = async () => {
     } else {
       await registerWith(form.email.trim(), form.password, form.displayName.trim())
     }
+    await syncTbtiFromAccount()
     router.push('/plan')
   } catch (err) {
     errorMsg.value = err.message || '操作失败，请稍后重试'

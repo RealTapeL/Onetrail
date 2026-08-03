@@ -172,3 +172,24 @@ def test_weather_tip_requires_configured_provider() -> None:
             headers=headers,
             json={"rating": 5},
         ).status_code == 404
+
+
+def test_preference_tbti_type_lifecycle() -> None:
+    with TestClient(app) as client:
+        headers = _auth_headers(client, "tbti@example.com")
+        # 未设置时为空
+        empty = client.get("/api/v1/profile/preferences", headers=headers)
+        assert empty.status_code == 200
+        assert empty.json()["tbti_type"] is None
+        # 保存 TBTI 类型
+        saved = client.put("/api/v1/profile/preferences", headers=headers, json={"tbti_type": "JUAN"})
+        assert saved.status_code == 200
+        assert saved.json()["tbti_type"] == "JUAN"
+        # 重新拉取仍在（账号绑定），且不影响既有字段的部分更新语义
+        got = client.get("/api/v1/profile/preferences", headers=headers)
+        assert got.json()["tbti_type"] == "JUAN"
+        # 更新其他字段不抹掉 tbti_type
+        client.put("/api/v1/profile/preferences", headers=headers, json={"interests": ["云海"]})
+        assert client.get("/api/v1/profile/preferences", headers=headers).json()["tbti_type"] == "JUAN"
+        # 未登录不可写
+        assert client.put("/api/v1/profile/preferences", json={"tbti_type": "WOLF"}).status_code == 401
