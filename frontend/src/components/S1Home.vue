@@ -6,8 +6,11 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import HudNav from './HudNav.vue'
+import TbtiQuiz from './TbtiQuiz.vue'
+import PrefsSheet from './PrefsSheet.vue'
 import { fetchBrandStats, postRecommendations } from '../api/index'
 import { questFormDefaults, FORECAST_MIN_DATE, FORECAST_MAX_DATE } from '../api/index'
+import { applyTbtiToForm, tbtiResult } from '../composables/tbti'
 
 const forecastMin = FORECAST_MIN_DATE
 const forecastMax = FORECAST_MAX_DATE
@@ -17,8 +20,11 @@ const form = reactive(JSON.parse(JSON.stringify(questFormDefaults)))
 const brandStats = ref([])
 const submitting = ref(false)
 const errorMsg = ref('')
+const quizOpen = ref(false)
+const prefsOpen = ref(false)
 
 onMounted(async () => {
+  applyTbtiToForm(form)
   try {
     brandStats.value = await fetchBrandStats()
   } catch { /* 后端未启动时保留空 */ }
@@ -41,6 +47,10 @@ const locate = () => {
     form.location.lng = +pos.coords.longitude.toFixed(5)
     form.location.useCurrentPosition = true
   })
+}
+const onQuizDone = () => {
+  quizOpen.value = false
+  applyTbtiToForm(form)
 }
 const submit = async () => {
   if (submitting.value) return
@@ -88,6 +98,26 @@ const submit = async () => {
           </span>
         </div>
 
+        <!-- 分块入口：TBTI 测评为核心入口，已测显示人格 -->
+        <div class="entries">
+          <button class="entry" @click="quizOpen = true">
+            <div class="e-main tbti">{{ tbtiResult ? tbtiResult.type : 'TBTI' }}</div>
+            <div class="e-label">{{ tbtiResult ? `${tbtiResult.name} · 重测` : '测测我的TBTI' }}</div>
+          </button>
+          <button class="entry" @click="$router.push('/routes')">
+            <div class="e-main">路线</div>
+            <div class="e-label">路线库</div>
+          </button>
+          <button class="entry" @click="$router.push('/trip/current')">
+            <div class="e-main">行程</div>
+            <div class="e-label">我的行程</div>
+          </button>
+          <button class="entry" @click="$router.push('/gear')">
+            <div class="e-main">装备</div>
+            <div class="e-label">装备比选</div>
+          </button>
+        </div>
+
         <div class="pixel-art">
           <span class="px amber" style="left:62px; top:14px; width:32px; height:32px;" />
           <span class="px white" style="left:178px; top:22px;" />
@@ -133,26 +163,20 @@ const submit = async () => {
             </div>
             <div class="f-coord">坐标 {{ form.location.lat.toFixed(2) }}, {{ form.location.lng.toFixed(2) }} · 定位后自动填入</div>
           </div>
-          <div class="field">
-            <div class="f-label">预算 · BUDGET（元/人）</div>
-            <input type="number" v-model.number="form.budgetPerPerson.max" class="f-input" />
-          </div>
+
+          <!-- 预算/体能/装备：摘要行，点开弹层 -->
+          <button class="field span2 prefs-field" @click="prefsOpen = true">
+            <div class="f-label">预算 / 体能 / 装备 · PREFS</div>
+            <div class="prefs-val">
+              ¥{{ form.budgetPerPerson.max }} / 人 · 体能 Lv.{{ form.fitnessLevel }} · 装备 {{ form.ownedGear.length }} 件
+              <span class="prefs-arrow">›</span>
+            </div>
+          </button>
         </div>
 
         <div class="sec-label"><span class="sec-cn">选填</span><span class="sec-en">OPTIONAL</span><span class="sec-line" /></div>
 
         <div class="q-grid">
-          <div class="field">
-            <div class="f-label">体能 · FITNESS</div>
-            <select v-model.number="form.fitnessLevel" class="f-input">
-              <option v-for="n in 5" :key="n" :value="n">Lv.{{ n }}</option>
-            </select>
-          </div>
-          <div class="field">
-            <div class="f-label">已有装备 · MY GEAR</div>
-            <input :value="form.ownedGear.join(' · ')" class="f-input"
-                   @input="form.ownedGear = $event.target.value.split(/[·,，、\s]+/).filter(Boolean)" />
-          </div>
           <div class="field span2">
             <div class="f-label">兴趣 · INTERESTS</div>
             <div class="f-chips">
@@ -169,6 +193,8 @@ const submit = async () => {
         <div v-if="errorMsg" class="q-error">{{ errorMsg }}</div>
       </div>
     </div>
+    <TbtiQuiz v-if="quizOpen" @close="quizOpen = false" @done="onQuizDone" />
+    <PrefsSheet v-if="prefsOpen" :form="form" @close="prefsOpen = false" />
   </section>
 </template>
 
@@ -204,6 +230,18 @@ const submit = async () => {
 .q-chip { display: inline-flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--lime); padding: 8px 12px; }
 .q-no { font-family: var(--silk); font-weight: 700; font-size: 11px; color: var(--lime); }
 .q-tx { font-size: 13px; font-weight: 500; color: var(--t1); }
+
+/* 分块入口 */
+.entries { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.entry {
+  background: var(--panel); border: 1px solid var(--line);
+  padding: 14px 6px 12px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.entry:hover { border-color: var(--lime); }
+.e-main { font-family: var(--vt); font-size: 17px; color: #FFF; }
+.e-main.tbti { color: var(--lime); }
+.e-label { font-size: 11px; color: var(--t2); white-space: nowrap; }
 
 .pixel-art { position: relative; width: 100%; max-width: 420px; height: 240px; flex: none; margin-top: auto; }
 .px { position: absolute; width: 14px; height: 14px; background: #FFFFFF; }
@@ -262,6 +300,12 @@ const submit = async () => {
 .f-chips { display: flex; gap: 8px; }
 .i-chip { font-size: 12px; font-weight: 500; color: var(--ink); background: #FFFFFF; border: 1px solid var(--ink); padding: 5px 10px; }
 .i-chip.on { background: var(--ink); color: var(--lime); font-weight: 700; border-color: var(--ink); }
+
+/* 预算/体能/装备 摘要行（点开弹层） */
+.prefs-field { cursor: pointer; text-align: left; }
+.prefs-field:hover { border-color: var(--lime); }
+.prefs-val { font-size: 15px; font-weight: 700; color: var(--ink); display: flex; align-items: center; justify-content: space-between; }
+.prefs-arrow { color: var(--t3); font-size: 18px; }
 
 /* CTA：独占整行横贯表单底部 */
 .cta {

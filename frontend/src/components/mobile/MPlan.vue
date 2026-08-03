@@ -1,12 +1,16 @@
 <script setup>
-/** M1 规划 · 需求输入（移动端 Tab 1，对齐设计稿 6:21）
+/** M1 规划 · 需求输入（移动端 Tab 1）
+ *  分块入口（TBTI 测评/路线库/行程/装备）+ 需求表单 + 携程式预算/体能/装备弹层
  *  提交后调用真实后端 POST /api/v1/recommendations/plan
  */
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import MHeader from './MHeader.vue'
 import TabBar from './TabBar.vue'
+import TbtiQuiz from '../TbtiQuiz.vue'
+import PrefsSheet from '../PrefsSheet.vue'
 import { postRecommendations, questFormDefaults, FORECAST_MIN_DATE, FORECAST_MAX_DATE } from '../../api/index'
+import { applyTbtiToForm, tbtiResult } from '../../composables/tbti'
 
 const forecastMin = FORECAST_MIN_DATE
 const forecastMax = FORECAST_MAX_DATE
@@ -16,9 +20,18 @@ const form = reactive(JSON.parse(JSON.stringify(questFormDefaults)))
 const interestOptions = ['瀑布', '竹林', '古道', '云海']
 const submitting = ref(false)
 const errorMsg = ref('')
+const quizOpen = ref(false)
+const prefsOpen = ref(false)
+
+onMounted(() => applyTbtiToForm(form))
+
 const toggle = (tag) => {
   const i = form.interests.indexOf(tag)
   i >= 0 ? form.interests.splice(i, 1) : form.interests.push(tag)
+}
+const onQuizDone = () => {
+  quizOpen.value = false
+  applyTbtiToForm(form)
 }
 const submit = async () => {
   if (submitting.value) return
@@ -64,13 +77,35 @@ const submit = async () => {
         </div>
       </section>
 
+      <!-- 分块入口（豆瓣式）：TBTI 测评为核心入口，已测显示人格 -->
+      <section class="entries">
+        <button class="entry" @click="quizOpen = true">
+          <div class="e-main tbti">
+            <template v-if="tbtiResult">{{ tbtiResult.type }}</template>
+            <template v-else>TBTI</template>
+          </div>
+          <div class="e-label">{{ tbtiResult ? `${tbtiResult.name} · 重测` : '测测我的TBTI' }}</div>
+        </button>
+        <button class="entry" @click="$router.push('/routes')">
+          <div class="e-main">路线</div>
+          <div class="e-label">路线库</div>
+        </button>
+        <button class="entry" @click="$router.push('/trip/current')">
+          <div class="e-main">行程</div>
+          <div class="e-label">我的行程</div>
+        </button>
+        <button class="entry" @click="$router.push('/gear')">
+          <div class="e-main">装备</div>
+          <div class="e-label">装备比选</div>
+        </button>
+      </section>
+
       <section class="form">
         <div class="f-head">
           <div class="f-cn">「01」需求输入</div>
           <div class="f-en">QUEST INPUT — TELL US YOUR PLAN</div>
         </div>
 
-        <div class="sec-label"><span class="sec-cn">必填</span><span class="sec-line" /></div>
         <div class="row"><span class="lb">出行日期 · DATE</span>
           <span class="ctl"><input type="date" v-model="form.dateRange.start" class="in"
                  :min="forecastMin" :max="forecastMax" /></span></div>
@@ -78,17 +113,16 @@ const submit = async () => {
           <span class="ctl"><input v-model="form.location.city" class="in" @input="form.location.useCurrentPosition = false" /></span></div>
         <div class="row"><span class="lb">同行人数 · PARTY</span>
           <span class="ctl"><input type="number" min="1" v-model.number="form.party.adults" class="in" /> 人</span></div>
-        <div class="row"><span class="lb">预算 · BUDGET（元/人）</span>
-          <span class="ctl">¥<input type="number" v-model.number="form.budgetPerPerson.max" class="in" /></span></div>
 
-        <div class="sec-label"><span class="sec-cn">选填</span><span class="sec-line" /></div>
-        <div class="row"><span class="lb">体能 · FITNESS</span>
-          <span class="ctl"><select v-model.number="form.fitnessLevel" class="in">
-            <option v-for="n in 5" :key="n" :value="n">Lv.{{ n }}</option>
-          </select></span></div>
-        <div class="row"><span class="lb">已有装备 · MY GEAR</span>
-          <span class="ctl"><input :value="form.ownedGear.join(' · ')" class="in"
-            @input="form.ownedGear = $event.target.value.split(/[·,，、\s]+/).filter(Boolean)" /></span></div>
+        <!-- 预算/体能/装备：摘要行，点开底部弹层 -->
+        <button class="row prefs-row" @click="prefsOpen = true">
+          <span class="lb">预算 / 体能 / 装备</span>
+          <span class="ctl prefs-val">
+            ¥{{ form.budgetPerPerson.max }} · Lv.{{ form.fitnessLevel }} · {{ form.ownedGear.length }}件
+            <span class="prefs-arrow">›</span>
+          </span>
+        </button>
+
         <div class="row"><span class="lb">兴趣 · INTERESTS</span>
           <span class="ctl chips">
             <button v-for="t in interestOptions" :key="t" class="i-chip"
@@ -103,6 +137,8 @@ const submit = async () => {
       </section>
     </div>
     <TabBar />
+    <TbtiQuiz v-if="quizOpen" @close="quizOpen = false" @done="onQuizDone" />
+    <PrefsSheet v-if="prefsOpen" :form="form" @close="prefsOpen = false" />
   </div>
 </template>
 
@@ -121,6 +157,18 @@ const submit = async () => {
 .s-cn { font-size: 14px; font-weight: 900; color: #FFF; }
 .s-en { font-family: var(--silk); font-size: 7px; color: var(--lime); margin-top: 3px; }
 
+/* 分块入口 */
+.entries { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.entry {
+  background: var(--panel); border: 1px solid var(--line);
+  padding: 12px 4px 10px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.entry:active { border-color: var(--lime); }
+.e-main { font-family: var(--vt); font-size: 15px; color: #FFF; }
+.e-main.tbti { color: var(--lime); }
+.e-label { font-size: 10px; color: var(--t2); white-space: nowrap; }
+
 .form {
   background: #FFF; border: 2px solid var(--ink); box-shadow: var(--sh-ink-3);
   padding: 16px; display: flex; flex-direction: column; gap: 12px;
@@ -128,9 +176,6 @@ const submit = async () => {
 .f-head { display: flex; flex-direction: column; gap: 4px; }
 .f-cn { font-size: 18px; font-weight: 900; color: var(--ink); }
 .f-en { font-family: var(--silk); font-size: 8px; color: var(--t3); }
-.sec-label { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
-.sec-cn { font-size: 11px; font-weight: 900; color: var(--ink); }
-.sec-line { flex: 1; height: 1px; background: #D8D8D0; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .lb { font-size: 10px; font-weight: 500; color: var(--t3); flex: none; }
 .ctl { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 13px; font-weight: 700; color: var(--ink); }
@@ -143,7 +188,9 @@ const submit = async () => {
   text-align: right; padding: 2px 0;
 }
 .in:focus { outline: none; border-bottom-color: var(--ink); }
-select.in { appearance: auto; }
+.prefs-row { background: none; border: none; padding: 0; cursor: pointer; width: 100%; }
+.prefs-val { color: var(--ink); }
+.prefs-arrow { color: var(--t3); font-size: 15px; }
 .chips { gap: 6px; }
 .i-chip {
   font-size: 10px; font-weight: 500; padding: 3px 8px;
