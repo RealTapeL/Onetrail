@@ -1,10 +1,11 @@
 <script setup>
 /** 登录 / 注册（桌面与移动共用，响应式） */
 import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { loginWith, registerWith } from '../api/http'
 import { syncTbtiFromAccount } from '../composables/tbti'
 
+const route = useRoute()
 const router = useRouter()
 const mode = ref('login') // login | register
 const form = reactive({ email: '', password: '', displayName: '' })
@@ -30,7 +31,8 @@ const submit = async () => {
       await registerWith(form.email.trim(), form.password, form.displayName.trim())
     }
     await syncTbtiFromAccount()
-    router.push('/plan')
+    // 有回跳目标（未登录被拦到登录页的场景）则返回原页面
+    router.push(typeof route.query.redirect === 'string' ? route.query.redirect : '/plan')
   } catch (err) {
     errorMsg.value = err.message || '操作失败，请稍后重试'
   } finally {
@@ -42,6 +44,15 @@ const submit = async () => {
 const switchMode = () => {
   mode.value = mode.value === 'login' ? 'register' : 'login'
   errorMsg.value = ''
+}
+
+/** 演示账号一键进入（本地预览用，免输账号密码） */
+const demoLogin = async () => {
+  if (submitting.value) return
+  mode.value = 'login'
+  form.email = 'admin@onetrail.dev'
+  form.password = 'admin123456'
+  await submit()
 }
 </script>
 
@@ -75,6 +86,7 @@ const switchMode = () => {
       <button class="switch" @click="switchMode">
         {{ mode === 'login' ? '没有账号？去注册 →' : '已有账号？去登录 →' }}
       </button>
+      <button class="demo" @click="demoLogin">⚡ 演示账号一键进入</button>
     </div>
   </div>
 </template>
@@ -129,4 +141,24 @@ const switchMode = () => {
 .cta:disabled { opacity: 0.6; }
 .switch { font-size: 12px; font-weight: 500; color: var(--t3); padding: 4px; }
 .switch:hover { color: var(--ink); }
+
+/* 移动端：整体缩小，避免一屏放不下 */
+@media (max-width: 520px) {
+  .card { padding: 20px; gap: 8px; }
+  .title { font-size: 21px; }
+  .sub { font-size: 12px; margin-bottom: 2px; }
+  .in { padding: 8px 10px; font-size: 13px; }
+  .cta { height: 42px; font-size: 14px; }
+  .demo { height: 36px; font-size: 12px; }
+}
+.demo {
+  margin-top: 4px;
+  height: 40px;
+  background: #FFFFFF;
+  border: 2px dashed var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.demo:hover { background: var(--lime); }
 </style>

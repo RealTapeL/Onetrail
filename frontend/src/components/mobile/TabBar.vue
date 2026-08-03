@@ -22,6 +22,10 @@ const tabs = [
   {
     key: 'gear', label: '装备', to: '/gear',
     icon: '<rect x="2" y="13" width="16" height="3"/><rect x="4" y="8" width="9" height="5"/><rect x="13" y="10" width="5" height="3"/><rect x="6" y="6" width="2" height="2"/><rect x="9" y="7" width="2" height="2"/>'
+  },
+  {
+    key: 'me', label: '我的', to: '/me',
+    icon: '<rect x="7" y="2" width="6" height="6"/><rect x="4" y="11" width="12" height="3"/><rect x="6" y="14" width="8" height="4"/>'
   }
 ]
 </script>
@@ -54,7 +58,7 @@ const tabs = [
   border-top: 1px solid var(--line);
 }
 .tab {
-  width: 25%;
+  width: 20%;
   display: flex;
   flex-direction: column;
   align-items: center;

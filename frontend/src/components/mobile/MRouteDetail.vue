@@ -6,6 +6,8 @@ import { computed, ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import BackHeader from './BackHeader.vue'
 import RouteMarkModal from '../RouteMarkModal.vue'
+import ReviewMediaPicker from '../ReviewMediaPicker.vue'
+import SharePoster from '../SharePoster.vue'
 import { fetchRouteDetail, IMPRESSION_OPTIONS, setFavorite } from '../../api/index'
 import { useRouteReview } from '../../composables/useRouteReview'
 import { buildRatingPanel } from '../../composables/ratingPanel'
@@ -15,16 +17,9 @@ const routeDetail = ref(null)
 const loadError = ref('')
 const favored = ref(false)
 const shareMsg = ref('')
-
-const share = async () => {
-  try {
-    await navigator.clipboard.writeText(window.location.href)
-    shareMsg.value = '已复制'
-  } catch {
-    shareMsg.value = '复制失败'
-  }
-  setTimeout(() => { shareMsg.value = '' }, 2000)
-}
+// 分享海报弹层
+const posterOpen = ref(false)
+const share = () => { posterOpen.value = true }
 
 const load = async (id) => {
   routeDetail.value = null
@@ -66,6 +61,12 @@ const onMarked = ({ tab }) => {
 // ---- 写评价 / 气质投票 ----
 const { reviewRating, reviewTags, reviewContent, reviewSubmitting, reviewMsg, toggleTag, submitReview } =
   useRouteReview(() => route.params.id, { onSubmitted: () => load(route.params.id) })
+// 评价附件（图片/视频，当前前端暂存）
+const reviewMedia = ref([])
+const submitWithMedia = async () => {
+  await submitReview()
+  if (reviewMsg.value === '评价已提交') reviewMedia.value = []
+}
 
 // ---- 评分面板（与桌面 S3 同一套计算） ----
 const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
@@ -173,9 +174,10 @@ const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
                   :class="{ on: reviewTags.includes(t) }" @click="toggleTag(t)">{{ t }}</button>
         </div>
         <textarea v-model="reviewContent" class="wr-text" rows="3" placeholder="说说真实体验（路况、风景、注意事项…）" />
+        <ReviewMediaPicker v-model:files="reviewMedia" />
         <div class="wr-foot">
           <span v-if="reviewMsg" class="wr-msg">{{ reviewMsg }}</span>
-          <button class="wr-submit" :disabled="reviewSubmitting" @click="submitReview">
+          <button class="wr-submit" :disabled="reviewSubmitting" @click="submitWithMedia">
             {{ reviewSubmitting ? '提交中…' : '提交' }}
           </button>
         </div>
@@ -189,6 +191,7 @@ const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
       <button class="cta-sub" @click="openMark('done')">去过</button>
     </div>
     </template>
+    <SharePoster v-if="posterOpen && routeDetail" :route="routeDetail" @close="posterOpen = false" />
     <RouteMarkModal v-if="markOpen && routeDetail" :route-id="routeDetail.id"
                     :initial-tab="markTab"
                     @close="markOpen = false" @marked="onMarked" />

@@ -30,6 +30,11 @@ const restart = () => {
   step.value = 0
   finished.value = false
 }
+
+/** 结果卡图片：/public/tbti/<CODE>.png（'GAI!' 文件名去掉感叹号） */
+const cardSrc = computed(() =>
+  result.value ? `/tbti/${result.value.type.replace('!', '')}.png` : ''
+)
 </script>
 
 <template>
@@ -40,6 +45,7 @@ const restart = () => {
       <!-- 结果页 -->
       <template v-if="finished && result">
         <div class="tb-kicker">你的人格类型是：</div>
+        <img class="tb-card" :src="cardSrc" :alt="`${result.name}人格卡`">
         <div class="tb-name">{{ result.name }}</div>
         <div class="tb-type">{{ result.type }}</div>
         <div class="tb-desc">{{ result.desc }}</div>
@@ -72,6 +78,8 @@ const restart = () => {
 }
 .tb-panel {
   position: relative; width: 100%; max-width: 480px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
   background: var(--panel); border: 2px solid var(--ink);
   box-shadow: var(--sh-lime-6);
   padding: 22px 20px calc(20px + var(--sab, 0px));
@@ -98,6 +106,13 @@ const restart = () => {
 .tb-back { align-self: flex-start; background: none; border: none; color: var(--t2); font-size: 11px; cursor: pointer; padding: 0; }
 
 /* 结果页 */
+.tb-card {
+  width: 180px;
+  display: block;
+  margin: 0 auto;
+  border: 2px solid var(--ink);
+  box-shadow: var(--sh-lime-4);
+}
 .tb-name { font-size: 30px; font-weight: 900; color: #FFF; text-align: center; }
 .tb-type { font-family: var(--vt); font-size: 38px; color: var(--lime); text-align: center; letter-spacing: 4px; }
 .tb-desc { font-size: 13px; color: var(--t1); text-align: center; line-height: 1.7; }

@@ -305,4 +305,36 @@ const submit = async () => {
 @media (max-width: 900px) {
   .mtn { display: none; }
 }
+
+/* 桌面端：整体纵向拉长、加大呼吸感，消除大片空白 */
+@media (min-width: 901px) {
+  .home-body { gap: 44px; padding: 56px var(--content-px) 72px; }
+  .flow { width: min(760px, 100%); gap: 36px; }
+  .h-neon { font-size: 44px; }
+  .h-title { font-size: 40px; }
+  .h-sub { font-size: 14px; }
+  .h-weather { font-size: 13px; }
+  .mtn { width: 400px; height: 200px; }
+  .tbti-card { padding: 26px 30px; }
+  .tc-title { font-size: 19px; }
+  .tc-sub { font-size: 13px; }
+  .tc-btn { height: 48px; padding: 0 26px; font-size: 15px; }
+  .w-cn { font-size: 46px; }
+  .w-en { font-size: 13px; }
+  .pt { padding: 20px; font-size: 16px; }
+  .loc-bar { padding: 13px 22px; font-size: 12px; }
+  .cell { padding: 20px 24px; gap: 8px; }
+  .c-in { font-size: 16px; }
+  .prefs-row { padding: 18px 24px; font-size: 14px; }
+  .chips { padding: 18px 24px; }
+  .i-chip { font-size: 13px; padding: 8px 14px; }
+  .cta { height: 76px; margin: 8px 22px 22px; }
+  .cta-cn { font-size: 22px; }
+  .trip-sec { gap: 16px; }
+  .ts-title { font-size: 22px; }
+  .ts-card { padding: 22px 26px; gap: 12px; }
+  .ts-label { font-size: 15px; }
+  .ts-time { font-size: 18px; }
+  .ts-event { font-size: 14px; }
+}
 </style>

@@ -11,6 +11,7 @@ import S3Detail from './components/S3Detail.vue'
 import S4Exec from './components/S4Exec.vue'
 import S5Library from './components/S5Library.vue'
 import S6Gear from './components/S6Gear.vue'
+import MePage from './components/MePage.vue'
 
 import MPlan from './components/mobile/MPlan.vue'
 import MPlanResults from './components/mobile/MPlanResults.vue'
@@ -39,6 +40,8 @@ const router = createRouter({
     { path: '/routes/:id', component: byDevice(S3Detail, MRouteDetail), meta: { bundle: 'library', title: '路线详情' } },
     { path: '/trip/current', component: byDevice(S4Exec, MTrip), meta: { bundle: 'trip', title: '我的行程' } },
     { path: '/gear', component: byDevice(S6Gear, MGear), meta: { bundle: 'gear', title: '装备' } },
+    // 个人主页：单组件自适应桌面/移动，可用 ?tab=fav|gear|rec|set 直达板块
+    { path: '/me', component: MePage, meta: { bundle: 'me', title: '个人主页' } },
     { path: '/:pathMatch(.*)*', redirect: '/plan' }
   ],
   scrollBehavior(to, from, savedPosition) {
@@ -48,9 +51,11 @@ const router = createRouter({
   }
 })
 
-// 未登录一律先走登录/注册页
+// 未登录一律先走登录/注册页；登录成功后跳回原目标页
 router.beforeEach((to) => {
-  if (to.path !== '/login' && !hasToken()) return '/login'
+  if (to.path !== '/login' && !hasToken()) {
+    return { path: '/login', query: { redirect: to.fullPath } }
+  }
   return true
 })
 

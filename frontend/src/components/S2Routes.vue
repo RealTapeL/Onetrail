@@ -51,7 +51,7 @@ const recommendation = computed(() => state.recommendation)
           <div class="rc-cta">查看详情 · 加入行程 →</div>
         </article>
       </div>
-      <div v-else class="empty panel-d">当前条件下没有满足限制的路线，请调整条件后重试。</div>
+      <div v-else class="empty empty-big panel-d">当前条件下没有满足限制的路线，请调整条件后重试。</div>
 
       <div v-if="recommendation.alternatives.length" class="alt-sec">
         <div class="alt-panel panel-d">
@@ -142,12 +142,24 @@ const recommendation = computed(() => state.recommendation)
   gap: 16px;
 }
 .empty-btn { background: var(--lime); color: var(--ink); font-weight: 700; padding: 8px 16px; }
+.empty-big { font-size: 18px; font-weight: 700; justify-content: center; padding: 56px 40px; }
 .notice {
-  margin: 0 var(--content-px) 16px;
-  padding: 10px 14px;
-  border: 1px solid var(--amber);
+  margin: 8px var(--content-px) 24px;
+  padding: 22px 26px;
+  border: 2px solid var(--amber);
+  box-shadow: 6px 6px 0 rgba(255, 208, 40, .25);
   color: var(--amber);
-  font-size: 13px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.7;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.notice::before {
+  content: '⚠';
+  font-size: 30px;
+  flex: none;
 }
 
 /* 窄屏桌面：三卡 → 两卡 → 单卡 */

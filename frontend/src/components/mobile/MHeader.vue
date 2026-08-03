@@ -24,9 +24,13 @@ function onLogout() {
       </svg>
       <span class="en">ONE TRAIL</span>
     </router-link>
-    <button v-if="session.user" class="lv as-btn" title="退出登录" @click="onLogout">
-      {{ session.user.display_name }} ⏻
-    </button>
+    <div v-if="session.user" class="user-side">
+      <!-- 用户名 → 个人主页（对齐桌面端交互）；退出登录拆成独立小按钮防误触 -->
+      <button class="lv as-btn" title="个人主页" @click="router.push('/me')">
+        {{ session.user.display_name }}
+      </button>
+      <button class="lv as-btn quit" title="退出登录" @click="onLogout">⏻</button>
+    </div>
     <span v-else class="lv">HIKER</span>
   </header>
 </template>
@@ -59,5 +63,6 @@ function onLogout() {
   color: var(--lime);
 }
 .as-btn { cursor: pointer; }
-.as-btn:active { color: var(--red); border-color: var(--red); }
+.user-side { display: flex; gap: 6px; }
+.quit:active { color: var(--red); border-color: var(--red); }
 </style>

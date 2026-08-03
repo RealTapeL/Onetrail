@@ -214,6 +214,11 @@ export async function fetchRouteDetail(routeId) {
   return {
     id: detail.id,
     name: detail.title,
+    region: detail.region,
+    distanceKm: detail.distance_km,
+    elevationGainM: detail.elevation_gain_m,
+    durationMin: detail.estimated_duration_min,
+    level: detail.level,
     coverImage: '/images/2_206.webp',
     stats: [
       { label: '距离 · DIST', value: `${detail.distance_km}KM` },
@@ -427,3 +432,30 @@ export async function fetchGearReviews() {
 }
 
 export { GEAR_CATEGORIES }
+
+/* ---------------- 个人主页（/me） ---------------- */
+
+/** GET /routes/favorites/mine → 我收藏的路线列表（RouteSummary[]） */
+export async function fetchMyFavorites() {
+  return api('/routes/favorites/mine')
+}
+
+/** GET /history → 我的徒步记录列表（ActivityResponse[]） */
+export async function fetchMyHistory() {
+  return api('/history')
+}
+
+/** GET /profile/preferences → 我的徒步偏好（距离/爬升/耗时/难度/兴趣/TBTI） */
+export async function fetchPreferences() {
+  return api('/profile/preferences')
+}
+
+/** PUT /profile/preferences → 保存徒步偏好 */
+export async function putPreferences(payload) {
+  return api('/profile/preferences', { method: 'PUT', body: payload })
+}
+
+/** GET /equipment → 装备全量目录（「我的装备」选品用） */
+export async function fetchEquipmentCatalog() {
+  return api('/equipment', { auth: false })
+}
