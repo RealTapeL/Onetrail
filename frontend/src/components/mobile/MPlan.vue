@@ -10,6 +10,7 @@ import TabBar from './TabBar.vue'
 import TbtiQuiz from '../TbtiQuiz.vue'
 import PrefsSheet from '../PrefsSheet.vue'
 import { buildPlan, postRecommendations, questFormDefaults, state, fetchWeatherTip, FORECAST_MIN_DATE, FORECAST_MAX_DATE } from '../../api/index'
+import { session } from '../../api/http'
 import { applyTbtiToForm, tbtiResult } from '../../composables/tbti'
 
 const forecastMin = FORECAST_MIN_DATE
@@ -99,7 +100,7 @@ const submit = async () => {
       <section class="hero">
         <div class="h-row">
           <div class="h-titles">
-            <div class="h-neon">NEON</div>
+            <div class="h-neon">{{ session.user?.display_name || 'NEON' }}</div>
             <h1 class="h-title">来都来了，徒步吗？;)</h1>
             <div v-if="weatherText" class="h-weather">{{ weatherText }}</div>
           </div>

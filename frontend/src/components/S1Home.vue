@@ -9,6 +9,7 @@ import HudNav from './HudNav.vue'
 import TbtiQuiz from './TbtiQuiz.vue'
 import PrefsSheet from './PrefsSheet.vue'
 import { buildPlan, postRecommendations, questFormDefaults, state, fetchWeatherTip, FORECAST_MIN_DATE, FORECAST_MAX_DATE } from '../api/index'
+import { session } from '../api/http'
 import { applyTbtiToForm, tbtiResult } from '../composables/tbti'
 
 const forecastMin = FORECAST_MIN_DATE
@@ -98,7 +99,7 @@ const submit = async () => {
       <!-- NEON hero：问候 + 天气 + 像素山 -->
       <section class="hero">
         <div class="h-titles">
-          <div class="h-neon">NEON</div>
+          <div class="h-neon">{{ session.user?.display_name || 'NEON' }}</div>
           <h1 class="h-title">来都来了，徒步吗？;)</h1>
           <div class="h-sub">一径入云深，与世界重联 · ONE TRAIL INTO THE CLOUDS</div>
           <div v-if="weatherText" class="h-weather">{{ weatherText }}</div>
