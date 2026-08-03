@@ -98,24 +98,13 @@ const submit = async () => {
           </span>
         </div>
 
-        <!-- 分块入口：TBTI 测评为核心入口，已测显示人格 -->
-        <div class="entries">
-          <button class="entry" @click="quizOpen = true">
-            <div class="e-main tbti">{{ tbtiResult ? tbtiResult.type : 'TBTI' }}</div>
-            <div class="e-label">{{ tbtiResult ? `${tbtiResult.name} · 重测` : '测测我的TBTI' }}</div>
-          </button>
-          <button class="entry" @click="$router.push('/routes')">
-            <div class="e-main">路线</div>
-            <div class="e-label">路线库</div>
-          </button>
-          <button class="entry" @click="$router.push('/trip/current')">
-            <div class="e-main">行程</div>
-            <div class="e-label">我的行程</div>
-          </button>
-          <button class="entry" @click="$router.push('/gear')">
-            <div class="e-main">装备</div>
-            <div class="e-label">装备比选</div>
-          </button>
+        <!-- TBTI 测评卡：未测 = 引导，已测 = 人格展示 -->
+        <div class="tbti-card">
+          <div class="tc-text">
+            <div class="tc-title">{{ tbtiResult ? `我的TBTI · ${tbtiResult.name}` : '测测我的TBTI' }}</div>
+            <div class="tc-sub">{{ tbtiResult ? `${tbtiResult.type} · ${tbtiResult.desc}` : '以便我们更好的推荐' }}</div>
+          </div>
+          <button class="tc-btn" @click="quizOpen = true">{{ tbtiResult ? '重测' : '开始测试' }}</button>
         </div>
 
         <div class="pixel-art">
@@ -231,17 +220,20 @@ const submit = async () => {
 .q-no { font-family: var(--silk); font-weight: 700; font-size: 11px; color: var(--lime); }
 .q-tx { font-size: 13px; font-weight: 500; color: var(--t1); }
 
-/* 分块入口 */
-.entries { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-.entry {
-  background: var(--panel); border: 1px solid var(--line);
-  padding: 14px 6px 12px; cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
+/* TBTI 测评卡（白卡） */
+.tbti-card {
+  background: #FFF; border: 2px solid var(--ink); box-shadow: var(--sh-ink-3);
+  padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  max-width: 420px;
 }
-.entry:hover { border-color: var(--lime); }
-.e-main { font-family: var(--vt); font-size: 17px; color: #FFF; }
-.e-main.tbti { color: var(--lime); }
-.e-label { font-size: 11px; color: var(--t2); white-space: nowrap; }
+.tc-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.tc-title { font-size: 15px; font-weight: 900; color: var(--ink); }
+.tc-sub { font-size: 11px; color: var(--t3); }
+.tc-btn {
+  flex: none; height: 38px; padding: 0 16px; cursor: pointer;
+  background: var(--lime); border: 2px solid var(--ink);
+  font-size: 13px; font-weight: 700; color: var(--ink);
+}
 
 .pixel-art { position: relative; width: 100%; max-width: 420px; height: 240px; flex: none; margin-top: auto; }
 .px { position: absolute; width: 14px; height: 14px; background: #FFFFFF; }

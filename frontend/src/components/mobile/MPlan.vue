@@ -1,15 +1,15 @@
 <script setup>
-/** M1 规划 · 需求输入（移动端 Tab 1）
- *  分块入口（TBTI 测评/路线库/行程/装备）+ 需求表单 + 携程式预算/体能/装备弹层
- *  提交后调用真实后端 POST /api/v1/recommendations/plan
+/** M1 规划 · 首页（移动端 Tab 1，排列对齐首页设计稿）
+ *  顺序：NEON hero（天气）→ TBTI 测评卡 → 你想去哪 → 需求表单卡 → 我的行程预览
+ *  表单控件全部映射真实推荐字段，提交走 POST /api/v1/recommendations/plan
  */
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import MHeader from './MHeader.vue'
 import TabBar from './TabBar.vue'
 import TbtiQuiz from '../TbtiQuiz.vue'
 import PrefsSheet from '../PrefsSheet.vue'
-import { postRecommendations, questFormDefaults, FORECAST_MIN_DATE, FORECAST_MAX_DATE } from '../../api/index'
+import { buildPlan, postRecommendations, questFormDefaults, state, fetchWeatherTip, FORECAST_MIN_DATE, FORECAST_MAX_DATE } from '../../api/index'
 import { applyTbtiToForm, tbtiResult } from '../../composables/tbti'
 
 const forecastMin = FORECAST_MIN_DATE
@@ -22,12 +22,48 @@ const submitting = ref(false)
 const errorMsg = ref('')
 const quizOpen = ref(false)
 const prefsOpen = ref(false)
+const weatherText = ref('')
 
-onMounted(() => applyTbtiToForm(form))
+// 我的行程预览：有选中方案时取时间线前两条
+const plan = computed(() => buildPlan(state.selectedRouteId))
+const tripPreview = computed(() => (plan.value?.timeline || []).slice(0, 2))
+
+onMounted(() => {
+  applyTbtiToForm(form)
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const tip = await fetchWeatherTip(pos.coords.latitude, pos.coords.longitude)
+      if (tip) weatherText.value = tip.text
+    })
+  }
+})
+
+// 轻装 / 重装：真实改表单默认值（体能 + 露营装备），用户可再改
+const packMode = ref('light')
+const setPack = (m) => {
+  packMode.value = m
+  if (m === 'heavy') {
+    form.fitnessLevel = Math.max(form.fitnessLevel, 4)
+    for (const g of ['帐篷', '睡袋']) {
+      if (!form.ownedGear.includes(g)) form.ownedGear.push(g)
+    }
+  } else {
+    form.fitnessLevel = Math.min(form.fitnessLevel, 2)
+    form.ownedGear = form.ownedGear.filter((g) => !['帐篷', '睡袋'].includes(g))
+  }
+}
 
 const toggle = (tag) => {
   const i = form.interests.indexOf(tag)
   i >= 0 ? form.interests.splice(i, 1) : form.interests.push(tag)
+}
+const locate = () => {
+  if (!navigator.geolocation) return
+  navigator.geolocation.getCurrentPosition((pos) => {
+    form.location.lat = +pos.coords.latitude.toFixed(5)
+    form.location.lng = +pos.coords.longitude.toFixed(5)
+    form.location.useCurrentPosition = true
+  })
 }
 const onQuizDone = () => {
   quizOpen.value = false
@@ -52,12 +88,13 @@ const submit = async () => {
   <div class="m-screen">
     <MHeader />
     <div class="m-body">
+      <!-- NEON hero：问候 + 天气 + 像素山 -->
       <section class="hero">
-        <div class="kicker"><span class="k-sq" /><span class="k-en">HIKING ROUTE DECISION ENGINE</span></div>
         <div class="h-row">
           <div class="h-titles">
-            <h1 class="h-title">你想去哪？</h1>
-            <div class="h-en">WHERE DO YOU WANT TO GO?</div>
+            <div class="h-neon">NEON</div>
+            <h1 class="h-title">来都来了，徒步吗？;)</h1>
+            <div v-if="weatherText" class="h-weather">{{ weatherText }}</div>
           </div>
           <svg class="mtn" viewBox="0 0 343 120" preserveAspectRatio="xMidYMax meet">
             <path d="M0 120 V96 H29 V75 H59 V89 H88 V62 H117 V75 H153 V48 H190 V66 H225 V34 H261 V55 H291 V25 H320 V50 H343 V120 Z"
@@ -68,72 +105,87 @@ const submit = async () => {
             <rect x="232" y="25" width="22" height="9" fill="#A3E635"/><rect x="299" y="16" width="22" height="9" fill="#A3E635"/>
           </svg>
         </div>
-        <div class="slogan">
-          <span class="s-bar" />
-          <div>
-            <div class="s-cn">一径入云深，与世界重联</div>
-            <div class="s-en">ONE TRAIL INTO THE CLOUDS, RECONNECT WITH THE WORLD</div>
-          </div>
+      </section>
+
+      <!-- TBTI 测评卡：未测 = 引导，已测 = 人格展示 -->
+      <section class="tbti-card">
+        <div class="tc-text">
+          <div class="tc-title">{{ tbtiResult ? `我的TBTI · ${tbtiResult.name}` : '测测我的TBTI' }}</div>
+          <div class="tc-sub">{{ tbtiResult ? `${tbtiResult.type} · ${tbtiResult.desc}` : '以便我们更好的推荐' }}</div>
         </div>
+        <button class="tc-btn" @click="quizOpen = true">{{ tbtiResult ? '重测' : '开始测试' }}</button>
       </section>
 
-      <!-- 分块入口（豆瓣式）：TBTI 测评为核心入口，已测显示人格 -->
-      <section class="entries">
-        <button class="entry" @click="quizOpen = true">
-          <div class="e-main tbti">
-            <template v-if="tbtiResult">{{ tbtiResult.type }}</template>
-            <template v-else>TBTI</template>
-          </div>
-          <div class="e-label">{{ tbtiResult ? `${tbtiResult.name} · 重测` : '测测我的TBTI' }}</div>
-        </button>
-        <button class="entry" @click="$router.push('/routes')">
-          <div class="e-main">路线</div>
-          <div class="e-label">路线库</div>
-        </button>
-        <button class="entry" @click="$router.push('/trip/current')">
-          <div class="e-main">行程</div>
-          <div class="e-label">我的行程</div>
-        </button>
-        <button class="entry" @click="$router.push('/gear')">
-          <div class="e-main">装备</div>
-          <div class="e-label">装备比选</div>
-        </button>
+      <!-- 大标题 -->
+      <section class="w-title">
+        <div class="w-cn">你想去哪？</div>
+        <div class="w-en">WHERE DO YOU WANT TO GO?</div>
       </section>
 
+      <!-- 需求表单卡 -->
       <section class="form">
-        <div class="f-head">
-          <div class="f-cn">「01」需求输入</div>
-          <div class="f-en">QUEST INPUT — TELL US YOUR PLAN</div>
+        <div class="pack-tabs">
+          <button class="pt" :class="{ on: packMode === 'light' }" @click="setPack('light')">轻装徒步</button>
+          <button class="pt" :class="{ on: packMode === 'heavy' }" @click="setPack('heavy')">重装徒步</button>
         </div>
 
-        <div class="row"><span class="lb">出行日期 · DATE</span>
-          <span class="ctl"><input type="date" v-model="form.dateRange.start" class="in"
-                 :min="forecastMin" :max="forecastMax" /></span></div>
-        <div class="row"><span class="lb">目的地 · LOCATION</span>
-          <span class="ctl"><input v-model="form.location.city" class="in" @input="form.location.useCurrentPosition = false" /></span></div>
-        <div class="row"><span class="lb">同行人数 · PARTY</span>
-          <span class="ctl"><input type="number" min="1" v-model.number="form.party.adults" class="in" /> 人</span></div>
+        <div class="loc-bar">
+          <span class="lb-text">⌖ 已定位到 {{ form.location.city }} · {{ form.location.lat.toFixed(2) }}, {{ form.location.lng.toFixed(2) }}</span>
+          <button class="lb-btn" @click="locate">重新定位</button>
+        </div>
 
-        <!-- 预算/体能/装备：摘要行，点开底部弹层 -->
-        <button class="row prefs-row" @click="prefsOpen = true">
-          <span class="lb">预算 / 体能 / 装备</span>
-          <span class="ctl prefs-val">
-            ¥{{ form.budgetPerPerson.max }} · Lv.{{ form.fitnessLevel }} · {{ form.ownedGear.length }}件
-            <span class="prefs-arrow">›</span>
-          </span>
+        <div class="grid2">
+          <div class="cell">
+            <div class="c-lb">我的位置</div>
+            <input v-model="form.location.city" class="c-in" @input="form.location.useCurrentPosition = false" />
+          </div>
+          <div class="cell">
+            <div class="c-lb">难度 · LEVEL</div>
+            <select v-model.number="form.fitnessLevel" class="c-in">
+              <option v-for="n in 5" :key="n" :value="n">Lv.{{ n }}</option>
+            </select>
+          </div>
+          <div class="cell">
+            <div class="c-lb">出行日期</div>
+            <input type="date" v-model="form.dateRange.start" class="c-in" :min="forecastMin" :max="forecastMax" />
+          </div>
+          <div class="cell">
+            <div class="c-lb">同行人数</div>
+            <input type="number" min="1" v-model.number="form.party.adults" class="c-in" />
+          </div>
+        </div>
+
+        <button class="prefs-row" @click="prefsOpen = true">
+          <span>预算 / 体能 / 装备</span>
+          <span class="pr-val">¥{{ form.budgetPerPerson.max }} · Lv.{{ form.fitnessLevel }} · {{ form.ownedGear.length }}件 ›</span>
         </button>
 
-        <div class="row"><span class="lb">兴趣 · INTERESTS</span>
-          <span class="ctl chips">
-            <button v-for="t in interestOptions" :key="t" class="i-chip"
-                    :class="{ on: form.interests.includes(t) }" @click="toggle(t)">{{ t }}</button>
-          </span></div>
+        <div class="chips">
+          <button v-for="t in interestOptions" :key="t" class="i-chip"
+                  :class="{ on: form.interests.includes(t) }" @click="toggle(t)">{{ t }}</button>
+        </div>
 
         <div v-if="errorMsg" class="q-error">{{ errorMsg }}</div>
         <button class="cta" :disabled="submitting" @click="submit">
           <span class="cta-cn">{{ submitting ? '生成中…' : '开始生成路线' }}</span>
           <span class="cta-en">PRESS START</span>
         </button>
+      </section>
+
+      <!-- 我的行程预览 -->
+      <section class="trip-sec">
+        <div class="ts-head">
+          <span class="ts-title">我的行程</span>
+          <button class="ts-all" @click="$router.push('/trip/current')">全部 ›</button>
+        </div>
+        <div v-if="tripPreview.length" class="ts-card" @click="$router.push('/trip/current')">
+          <div class="ts-label">时间安排 · TIMELINE</div>
+          <div v-for="t in tripPreview" :key="t.time" class="ts-row">
+            <span class="ts-time">{{ t.time }}</span>
+            <span class="ts-event">{{ t.event }}</span>
+          </div>
+        </div>
+        <div v-else class="ts-empty">还没有行程，生成推荐后这里会出现你的时间安排</div>
       </section>
     </div>
     <TabBar />
@@ -143,67 +195,96 @@ const submit = async () => {
 </template>
 
 <style scoped>
+/* NEON hero */
 .hero { display: flex; flex-direction: column; gap: 8px; }
-.kicker { display: flex; align-items: center; gap: 6px; }
-.k-sq { width: 8px; height: 8px; background: var(--lime); }
-.k-en { font-family: var(--silk); font-size: 9px; color: var(--lime); }
 .h-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
-.h-titles { display: flex; flex-direction: column; gap: 4px; }
-.h-title { font-size: 26px; font-weight: 900; color: #FFF; }
-.h-en { font-family: var(--p8); font-size: 8px; color: var(--lime); }
+.h-titles { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.h-neon { font-family: var(--vt); font-size: 22px; color: var(--lime); line-height: 1; }
+.h-title { font-size: 20px; font-weight: 900; color: #FFF; }
+.h-weather { font-size: 10px; color: var(--t2); }
 .mtn { width: 150px; height: 52px; flex: none; }
-.slogan { display: flex; align-items: center; gap: 10px; }
-.s-bar { width: 3px; height: 30px; background: var(--lime); flex: none; }
-.s-cn { font-size: 14px; font-weight: 900; color: #FFF; }
-.s-en { font-family: var(--silk); font-size: 7px; color: var(--lime); margin-top: 3px; }
 
-/* 分块入口 */
-.entries { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-.entry {
-  background: var(--panel); border: 1px solid var(--line);
-  padding: 12px 4px 10px; cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
+/* TBTI 测评卡（白卡） */
+.tbti-card {
+  background: #FFF; border: 2px solid var(--ink); box-shadow: var(--sh-ink-3);
+  padding: 14px 16px; display: flex; align-items: center; gap: 12px;
 }
-.entry:active { border-color: var(--lime); }
-.e-main { font-family: var(--vt); font-size: 15px; color: #FFF; }
-.e-main.tbti { color: var(--lime); }
-.e-label { font-size: 10px; color: var(--t2); white-space: nowrap; }
+.tc-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.tc-title { font-size: 15px; font-weight: 900; color: var(--ink); }
+.tc-sub { font-size: 10px; color: var(--t3); }
+.tc-btn {
+  flex: none; height: 36px; padding: 0 14px; cursor: pointer;
+  background: var(--lime); border: 2px solid var(--ink);
+  font-size: 12px; font-weight: 700; color: var(--ink);
+}
 
+/* 大标题 */
+.w-title { display: flex; flex-direction: column; gap: 4px; }
+.w-cn { font-size: 24px; font-weight: 900; color: #FFF; }
+.w-en { font-family: var(--p8); font-size: 9px; color: var(--lime); }
+
+/* 表单卡 */
 .form {
   background: #FFF; border: 2px solid var(--ink); box-shadow: var(--sh-ink-3);
-  padding: 16px; display: flex; flex-direction: column; gap: 12px;
+  display: flex; flex-direction: column;
 }
-.f-head { display: flex; flex-direction: column; gap: 4px; }
-.f-cn { font-size: 18px; font-weight: 900; color: var(--ink); }
-.f-en { font-family: var(--silk); font-size: 8px; color: var(--t3); }
-.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.lb { font-size: 10px; font-weight: 500; color: var(--t3); flex: none; }
-.ctl { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 13px; font-weight: 700; color: var(--ink); }
-.in {
-  width: 100%;
-  max-width: 220px;
-  min-width: 0;
-  font-size: 13px; font-weight: 700; color: var(--ink);
-  border: none; border-bottom: 1px solid #D8D8D0; background: none;
-  text-align: right; padding: 2px 0;
+.pack-tabs { display: flex; }
+.pt {
+  flex: 1; padding: 14px; cursor: pointer;
+  background: #161616; color: #FFF; font-size: 14px; font-weight: 700;
+  border: none; border-bottom: 2px solid var(--ink);
 }
-.in:focus { outline: none; border-bottom-color: var(--ink); }
-.prefs-row { background: none; border: none; padding: 0; cursor: pointer; width: 100%; }
-.prefs-val { color: var(--ink); }
-.prefs-arrow { color: var(--t3); font-size: 15px; }
-.chips { gap: 6px; }
-.i-chip {
-  font-size: 10px; font-weight: 500; padding: 3px 8px;
-  background: #FFF; border: 1px solid var(--ink); color: var(--ink);
+.pt.on { background: #FFF; color: var(--lime); }
+.loc-bar {
+  background: #161616; color: var(--t1);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 14px; font-size: 10px;
 }
+.lb-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-btn { flex: none; background: none; border: none; color: var(--lime); font-size: 10px; font-weight: 700; cursor: pointer; padding: 0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; }
+.cell {
+  padding: 10px 14px; border-bottom: 1px solid #D8D8D0;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.cell:nth-child(odd) { border-right: 1px solid #D8D8D0; }
+.c-lb { font-size: 10px; color: var(--t3); }
+.c-in {
+  border: none; background: none; padding: 0;
+  font-size: 13px; font-weight: 700; color: var(--ink); width: 100%;
+}
+.c-in:focus { outline: none; }
+.prefs-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 12px 14px; background: none; border: none; border-bottom: 1px solid #D8D8D0;
+  cursor: pointer; font-size: 12px; font-weight: 700; color: var(--ink); width: 100%;
+}
+.pr-val { color: var(--t3); font-size: 11px; }
+.chips { display: flex; gap: 8px; padding: 12px 14px; }
+.i-chip { font-size: 11px; font-weight: 500; padding: 5px 10px; background: #FFF; border: 1px solid var(--ink); color: var(--ink); cursor: pointer; }
 .i-chip.on { background: var(--ink); color: var(--lime); font-weight: 700; }
+.q-error { margin: 0 14px; font-size: 10px; font-weight: 500; color: var(--red); }
 .cta {
-  margin-top: 4px; height: 48px;
+  margin: 4px 14px 14px; height: 52px; cursor: pointer;
   background: var(--lime); border: 2px solid var(--ink); box-shadow: var(--sh-ink-3);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
 }
-.cta-cn { font-size: 15px; font-weight: 900; color: var(--ink); }
-.cta-en { font-family: var(--p8); font-size: 7px; color: var(--ink); }
+.cta-cn { font-size: 16px; font-weight: 900; color: var(--ink); }
+.cta-en { font-family: var(--p8); font-size: 8px; color: var(--ink); }
 .cta:disabled { opacity: 0.6; }
-.q-error { font-size: 10px; font-weight: 500; color: var(--red); }
+
+/* 我的行程预览 */
+.trip-sec { display: flex; flex-direction: column; gap: 10px; }
+.ts-head { display: flex; align-items: baseline; justify-content: space-between; }
+.ts-title { font-size: 16px; font-weight: 900; color: #FFF; }
+.ts-all { background: none; border: none; color: var(--t2); font-size: 11px; cursor: pointer; padding: 0; }
+.ts-card {
+  background: var(--panel); border: 1px solid var(--line); cursor: pointer;
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+}
+.ts-label { font-size: 11px; font-weight: 700; color: #FFF; }
+.ts-row { display: flex; gap: 10px; align-items: baseline; }
+.ts-time { font-family: var(--vt); font-size: 13px; color: var(--lime); width: 46px; flex: none; }
+.ts-event { font-size: 11px; color: var(--t1); }
+.ts-empty { font-size: 11px; color: var(--t3); }
 </style>
