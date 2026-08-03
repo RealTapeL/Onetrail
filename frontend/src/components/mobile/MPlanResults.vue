@@ -104,7 +104,16 @@ const recommendation = computed(() => state.recommendation)
 .alt-name { font-size: 11px; font-weight: 700; color: var(--t1); }
 .alt-meta { font-size: 9px; color: var(--t2); margin-top: 2px; }
 .spot-row { padding: 6px 0; border-top: 1px dashed var(--line); }
-.notice { font-size: 10px; font-weight: 500; color: var(--amber); }
+.notice {
+  background: rgba(255, 208, 40, .08);
+  border: 2px solid var(--amber);
+  box-shadow: 4px 4px 0 rgba(255, 208, 40, .25);
+  color: var(--amber);
+  font-size: 13px; font-weight: 700; line-height: 1.7;
+  padding: 14px 16px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.notice::before { content: '⚠'; font-size: 20px; flex: none; line-height: 1.4; }
 .empty { font-size: 11px; color: var(--t2); line-height: 1.8; display: flex; flex-direction: column; gap: 10px; }
 .empty-btn { align-self: flex-start; font-size: 11px; font-weight: 700; color: var(--lime); padding: 0; }
 </style>
