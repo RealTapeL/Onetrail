@@ -17,6 +17,13 @@ const forecastMax = FORECAST_MAX_DATE
 const router = useRouter()
 const form = reactive(JSON.parse(JSON.stringify(questFormDefaults)))
 const interestOptions = ['瀑布', '竹林', '古道', '云海']
+const levelOptions = [
+  { lv: 1, desc: '入门路线 · 台阶完好 · 新手友好' },
+  { lv: 2, desc: '稍有难度 · 部分路段没有台阶' },
+  { lv: 3, desc: '中等强度 · 碎石路较多' },
+  { lv: 4, desc: '进阶挑战 · 陡坡野路 · 需要经验' },
+  { lv: 5, desc: '重装拉练 · 长距离高强度' },
+]
 const submitting = ref(false)
 const errorMsg = ref('')
 const quizOpen = ref(false)
@@ -142,7 +149,7 @@ const submit = async () => {
             <div class="cell">
               <div class="c-lb">难度 · LEVEL</div>
               <select v-model.number="form.fitnessLevel" class="c-in">
-                <option v-for="n in 5" :key="n" :value="n">Lv.{{ n }}</option>
+                <option v-for="o in levelOptions" :key="o.lv" :value="o.lv">Lv.{{ o.lv }} · {{ o.desc }}</option>
               </select>
             </div>
             <div class="cell">

@@ -58,7 +58,7 @@ const reset = () => {
                   :class="{ on: form.fitnessLevel === n }"
                   @click="form.fitnessLevel = n">Lv.{{ n }}</button>
         </div>
-        <div class="pf-hint">Lv.1 休闲遛弯 — Lv.5 重装拉练</div>
+        <div class="pf-hint">Lv.1 台阶完好新手友好 — Lv.5 重装拉练高强度</div>
       </div>
 
       <div class="pf-sec">
