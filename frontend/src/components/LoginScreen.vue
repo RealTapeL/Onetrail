@@ -93,14 +93,16 @@ const demoLogin = async () => {
 
 <style scoped>
 .login-screen {
-  width: 100%;
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: none; /* 安卓 WebView 内禁止整页拖动/回弹 */
+  display: flex;
   background: var(--bg);
   padding: 24px;
 }
 .card {
+  margin: auto; /* flex + margin:auto 居中，内容超高时顶部仍可正常滚动到 */
   width: 400px;
   max-width: 100%;
   background: #FFFFFF;
