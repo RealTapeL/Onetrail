@@ -99,19 +99,6 @@ const onCheckin = async () => {
         </div>
       </div>
 
-      <div class="elev-sec">
-        <div class="elev panel-d">
-          <div class="ptitle">路线海拔剖面 · ELEVATION PROFILE（示意）</div>
-          <div class="chart">
-            <svg viewBox="0 0 1296 160" preserveAspectRatio="none">
-              <path d="M0 140 H100 V120 H220 V130 H360 V92 H500 V102 H660 V62 H800 V80 H960 V46 H1100 V72 H1296 V56 V160 H0 Z"
-                    fill="#0B0B0B" stroke="#A3E635" stroke-width="2" />
-            </svg>
-          </div>
-          <div class="elev-cap">{{ plan.elevation.caption }}</div>
-        </div>
-      </div>
-
       <div class="actions">
         <div class="checkin">
           <span class="ck-stars">
@@ -126,6 +113,19 @@ const onCheckin = async () => {
         <button class="btn white" @click="favoritePlan">{{ favored ? '已收藏' : '收藏计划' }}</button>
         <button class="btn dark">导出 PDF · 即将上线</button>
         <button class="btn soon">约伴同行 · 即将上线</button>
+      </div>
+
+      <div class="elev-sec">
+        <div class="elev panel-d">
+          <div class="ptitle">路线海拔剖面 · ELEVATION PROFILE（示意）</div>
+          <div class="chart">
+            <svg viewBox="0 0 1296 160" preserveAspectRatio="none">
+              <path d="M0 140 H100 V120 H220 V130 H360 V92 H500 V102 H660 V62 H800 V80 H960 V46 H1100 V72 H1296 V56 V160 H0 Z"
+                    fill="#0B0B0B" stroke="#A3E635" stroke-width="2" />
+            </svg>
+          </div>
+          <div class="elev-cap">{{ plan.elevation.caption }}</div>
+        </div>
       </div>
     </template>
     <RouteMarkModal v-if="markOpen && plan" :route-id="state.selectedRouteId"
@@ -163,13 +163,13 @@ const onCheckin = async () => {
 .gk-text.dim { color: var(--t2); }
 .gap-link { font-size: 12px; font-weight: 700; color: var(--lime); text-align: left; padding: 0; }
 
-.elev-sec { padding: 24px var(--content-px) 0; }
+.elev-sec { padding: 24px var(--content-px) 40px; }
 .elev { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
 .chart { position: relative; height: 110px; }
 .chart svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .elev-cap { font-size: 12px; color: var(--t2); }
 
-.actions { padding: 24px var(--content-px) 40px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.actions { padding: 24px var(--content-px) 0; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 .btn { height: 43px; padding: 0 18px; font-size: 13px; font-weight: 700; }
 .btn.white { background: #FFFFFF; color: var(--ink); margin-left: auto; }
 /* 主操作：完成打卡，全场最大最亮 */

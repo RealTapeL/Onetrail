@@ -66,9 +66,9 @@ const tabs = [
   gap: 4px;
   text-decoration: none;
 }
-.ti { width: 20px; height: 20px; fill: #8E8E8E; }
+.ti { width: 20px; height: 20px; fill: var(--t2); }
 .ti :deep(.cut) { fill: #0B0B0B; }
-.tl { font-size: 10px; font-weight: 500; color: #8E8E8E; }
+.tl { font-size: 10px; font-weight: 500; color: var(--t2); }
 .tab.on .ti { fill: var(--lime); }
 .tab.on .tl { color: var(--lime); }
 </style>

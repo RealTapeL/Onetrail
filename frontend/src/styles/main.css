@@ -6,6 +6,7 @@
   --line: #2E2E2E;        /* 深色描边 */
   /* 品牌色 */
   --lime: #A3E635;        /* 荧光绿 */
+  --brand-deep: #2F5B2A;  /* 品牌深绿（logo 底 / 头像底） */
   --amber: #FFD028;       /* 街机黄 */
   --red: #D32F2F;         /* 风险红 */
   --red-line: #FF5252;
@@ -14,6 +15,7 @@
   --white: #FFFFFF;
   --paper: #FAFAF7;       /* 表单字段底 */
   --track: #EAEAE4;       /* 投票条轨道 */
+  --line-soft: #D8D8D0;   /* 浅面分隔线（白卡内部） */
   /* 文字 */
   --t1: #F5F5F5;
   --t2: #8E8E8E;

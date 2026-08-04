@@ -171,7 +171,7 @@ onMounted(() => {
 .pr-row:last-child { border-bottom: none; }
 .pr-rank { font-family: var(--silk); font-size: 12px; color: var(--t3); width: 16px; flex: none; }
 .pr-rank.hot { color: var(--lime); font-weight: 700; }
-.pr-name { font-size: 13px; font-weight: 700; color: #FFFFFF; }
+.pr-name { font-size: 13px; font-weight: 700; color: #FFFFFF; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pr-meta { margin-left: auto; font-size: 11px; color: var(--t3); white-space: nowrap; }
 .prv { cursor: pointer; padding: 6px 0; border-bottom: 1px solid var(--line); }
 .prv:last-child { border-bottom: none; }

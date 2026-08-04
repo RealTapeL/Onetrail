@@ -223,10 +223,10 @@ const submit = async () => {
 /* 主流程单栏居中 */
 .flow { width: min(680px, 100%); display: flex; flex-direction: column; gap: 24px; }
 
-/* TBTI 测评卡（白卡） */
+/* TBTI 测评卡（辅助入口，弱化处理：虚线描边、无荧光投影，让主表单卡成为视觉焦点） */
 .tbti-card {
-  background: #FFF; border: 2px solid var(--ink); box-shadow: var(--sh-lime-6);
-  padding: 18px 22px; display: flex; align-items: center; gap: 16px;
+  background: #FFF; border: 1px dashed var(--t3);
+  padding: 14px 18px; display: flex; align-items: center; gap: 16px;
 }
 .tc-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .tc-title { font-size: 17px; font-weight: 900; color: var(--ink); }
@@ -250,12 +250,12 @@ const submit = async () => {
 .pack-tabs { display: flex; }
 .pt {
   flex: 1; padding: 16px; cursor: pointer;
-  background: #161616; color: #FFF; font-size: 15px; font-weight: 700;
+  background: var(--panel); color: #FFF; font-size: 15px; font-weight: 700;
   border: none; border-bottom: 2px solid var(--ink);
 }
 .pt.on { background: #FFF; color: var(--lime); }
 .loc-bar {
-  background: #161616; color: var(--t1);
+  background: var(--panel); color: var(--t1);
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   padding: 10px 18px; font-size: 11px;
 }
@@ -263,10 +263,10 @@ const submit = async () => {
 .lb-btn { flex: none; background: none; border: none; color: var(--lime); font-size: 11px; font-weight: 700; cursor: pointer; padding: 0; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; }
 .cell {
-  padding: 14px 18px; border-bottom: 1px solid #D8D8D0;
+  padding: 14px 18px; border-bottom: 1px solid var(--line-soft);
   display: flex; flex-direction: column; gap: 6px;
 }
-.cell:nth-child(odd) { border-right: 1px solid #D8D8D0; }
+.cell:nth-child(odd) { border-right: 1px solid var(--line-soft); }
 .c-lb { font-size: 11px; color: var(--t3); }
 .c-in {
   border: none; background: none; padding: 0;
@@ -275,7 +275,7 @@ const submit = async () => {
 .c-in:focus { outline: none; }
 .prefs-row {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  padding: 14px 18px; background: none; border: none; border-bottom: 1px solid #D8D8D0;
+  padding: 14px 18px; background: none; border: none; border-bottom: 1px solid var(--line-soft);
   cursor: pointer; font-size: 13px; font-weight: 700; color: var(--ink); width: 100%;
 }
 .pr-val { color: var(--t3); font-size: 12px; }
@@ -309,13 +309,13 @@ const submit = async () => {
 .ts-event { font-size: 13px; color: var(--t1); }
 .ts-empty { font-size: 12px; color: var(--t3); }
 
-/* 窄屏：像素山让位 */
-@media (max-width: 900px) {
+/* 窄屏：像素山让位（与 useIsMobile 的 820 标准对齐） */
+@media (max-width: 820px) {
   .mtn { display: none; }
 }
 
 /* 桌面端：整体纵向拉长、加大呼吸感，消除大片空白 */
-@media (min-width: 901px) {
+@media (min-width: 821px) {
   .home-body { gap: 44px; padding: 56px var(--content-px) 72px; }
   .flow { width: min(760px, 100%); gap: 36px; }
   .h-neon { font-size: 44px; }
@@ -323,7 +323,7 @@ const submit = async () => {
   .h-sub { font-size: 14px; }
   .h-weather { font-size: 13px; }
   .mtn { width: 400px; height: 200px; }
-  .tbti-card { padding: 26px 30px; }
+  .tbti-card { padding: 18px 22px; }
   .tc-title { font-size: 19px; }
   .tc-sub { font-size: 13px; }
   .tc-btn { height: 48px; padding: 0 26px; font-size: 15px; }

@@ -87,7 +87,6 @@ const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
           <div class="sh-title-en">ROUTE DETAIL — TRUSTED ARCHIVE</div>
         </div>
         <div class="head-right">
-          <span class="sh-chip lime">社区共识：{{ routeDetail.verdict.text }} · {{ routeDetail.verdict.voteCount }} 条评价</span>
           <button class="share-btn" @click="share">分享</button>
           <span v-if="shareMsg" class="share-msg">{{ shareMsg }}</span>
         </div>
@@ -332,10 +331,10 @@ const ratingPanel = computed(() => buildRatingPanel(routeDetail.value?.reviews))
   color: var(--t1);
 }
 
-/* 窄屏桌面：右栏取消吸顶并与主列上下堆叠 */
+/* 窄屏桌面：右栏取消吸顶并提到主列之前，verdict + CTA 不被埋 */
 @media (max-width: 1100px) {
   .main-row { flex-direction: column; }
-  .rail { width: 100%; position: static; }
+  .rail { width: 100%; position: static; order: -1; }
   .left-col { width: 100%; }
 }
 </style>

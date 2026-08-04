@@ -413,12 +413,13 @@ onMounted(() => {
 <style scoped>
 .me-card {
   display: flex; align-items: center; gap: 20px;
+  margin: 0 var(--content-px);
   padding: 24px 28px;
 }
 .me-ava {
   width: 72px; height: 72px; flex: none;
   display: flex; align-items: center; justify-content: center;
-  background: #2F5B2A; color: var(--lime);
+  background: var(--brand-deep); color: var(--lime);
   font-size: 28px; font-weight: 900;
   border: 2px solid var(--lime);
   box-shadow: var(--sh-lime-4);
@@ -436,7 +437,7 @@ onMounted(() => {
 .me-stats b { display: block; font-family: var(--silk); font-size: 20px; color: var(--lime); }
 .me-stats span { font-size: 11px; color: var(--t3); }
 
-.me-body { display: grid; grid-template-columns: 180px 1fr; gap: 20px; margin-top: 20px; align-items: start; }
+.me-body { display: grid; grid-template-columns: 180px 1fr; gap: 20px; margin: 20px var(--content-px) 0; align-items: start; }
 .me-tabs { display: flex; flex-direction: column; gap: 6px; position: sticky; top: 16px; }
 .me-tab {
   padding: 12px 16px;
@@ -546,9 +547,11 @@ onMounted(() => {
 .save:disabled { opacity: .5; cursor: default; }
 
 @media (max-width: 820px) {
-  .me-card { flex-wrap: wrap; }
+  /* 移动端骨架对齐 .m-screen：安全区 + 480 版心 + 16px 页边距 */
+  .screen { padding-top: var(--sat); max-width: 480px; margin: 0 auto; overflow-x: hidden; }
+  .me-card { flex-wrap: wrap; margin: 0 16px; }
   .me-stats { margin-left: 0; width: 100%; justify-content: space-between; gap: 12px; }
-  .me-body { grid-template-columns: 1fr; }
+  .me-body { grid-template-columns: 1fr; margin: 20px 16px 0; }
   .fav-grid, .gear-grid { grid-template-columns: 1fr; }
   .achv-grid { grid-template-columns: 1fr 1fr; }
   .set-row label { width: 110px; }

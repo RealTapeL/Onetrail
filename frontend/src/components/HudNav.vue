@@ -119,7 +119,7 @@ const popMenus = [
   flex: none;
 }
 .logo { display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none; }
-.logo-mark { position: relative; width: 28px; height: 28px; background: #2F5B2A; flex: none; }
+.logo-mark { position: relative; width: 28px; height: 28px; background: var(--brand-deep); flex: none; }
 .logo-mark i { position: absolute; width: 4px; height: 4px; background: #FFFFFF; }
 .logo-cn { font-size: 20px; font-weight: 900; color: #FFFFFF; }
 .logo-en { font-family: var(--p8); font-size: 11px; color: var(--lime); }
@@ -179,7 +179,7 @@ const popMenus = [
 .p-ava {
   width: 40px; height: 40px; flex: none;
   display: flex; align-items: center; justify-content: center;
-  background: #2F5B2A; color: var(--lime);
+  background: var(--brand-deep); color: var(--lime);
   font-size: 16px; font-weight: 900;
   border: 1px solid var(--lime);
 }
@@ -215,7 +215,7 @@ const popMenus = [
   color: #0B0B0B;
   cursor: pointer;
 }
-.p-home:hover { box-shadow: 3px 3px 0 #2F5B2A; }
+.p-home:hover { box-shadow: 3px 3px 0 var(--brand-deep); }
 .p-quit {
   width: 100%;
   padding: 10px 14px;

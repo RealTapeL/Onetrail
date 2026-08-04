@@ -127,7 +127,7 @@ const recommendation = computed(() => state.recommendation)
 .alt-note { font-size: 12px; color: var(--t2); }
 .alt-row { display: flex; align-items: center; gap: 16px; min-height: 40px; cursor: pointer; }
 .alt-thumb { width: 40px; height: 40px; object-fit: cover; flex: none; }
-.alt-name { font-size: 14px; font-weight: 700; color: var(--t1); flex: none; }
+.alt-name { font-size: 14px; font-weight: 700; color: var(--t1); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .alt-meta { font-size: 12px; color: var(--t2); }
 .alt-view { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--lime); flex: none; }
 .spot-row { cursor: default; }

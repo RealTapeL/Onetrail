@@ -17,7 +17,7 @@ function onLogout() {
   <header class="m-header">
     <router-link class="logo" to="/plan">
       <svg class="mark" viewBox="0 0 20 20">
-        <rect width="20" height="20" fill="#2F5B2A"/>
+        <rect width="20" height="20" style="fill: var(--brand-deep)"/>
         <rect x="9" y="4" width="3" height="3" fill="#FFF"/><rect x="6" y="7" width="3" height="3" fill="#FFF"/>
         <rect x="12" y="7" width="3" height="3" fill="#FFF"/><rect x="3" y="10" width="3" height="3" fill="#FFF"/>
         <rect x="9" y="10" width="3" height="3" fill="#FFF"/><rect x="15" y="10" width="3" height="3" fill="#FFF"/>

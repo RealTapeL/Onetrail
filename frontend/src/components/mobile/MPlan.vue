@@ -212,10 +212,10 @@ const submit = async () => {
 .h-weather { font-size: 10px; color: var(--t2); }
 .mtn { width: 150px; height: 52px; flex: none; }
 
-/* TBTI 测评卡（白卡） */
+/* TBTI 测评卡（辅助入口，弱化处理：虚线描边、无投影，让主表单卡成为视觉焦点） */
 .tbti-card {
-  background: #FFF; border: 2px solid var(--ink); box-shadow: var(--sh-ink-3);
-  padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  background: #FFF; border: 1px dashed var(--t3);
+  padding: 12px 14px; display: flex; align-items: center; gap: 12px;
 }
 .tc-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .tc-title { font-size: 15px; font-weight: 900; color: var(--ink); }
@@ -239,12 +239,12 @@ const submit = async () => {
 .pack-tabs { display: flex; }
 .pt {
   flex: 1; padding: 14px; cursor: pointer;
-  background: #161616; color: #FFF; font-size: 14px; font-weight: 700;
+  background: var(--panel); color: #FFF; font-size: 14px; font-weight: 700;
   border: none; border-bottom: 2px solid var(--ink);
 }
 .pt.on { background: #FFF; color: var(--lime); }
 .loc-bar {
-  background: #161616; color: var(--t1);
+  background: var(--panel); color: var(--t1);
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   padding: 8px 14px; font-size: 10px;
 }
@@ -252,10 +252,10 @@ const submit = async () => {
 .lb-btn { flex: none; background: none; border: none; color: var(--lime); font-size: 10px; font-weight: 700; cursor: pointer; padding: 0; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; }
 .cell {
-  padding: 10px 14px; border-bottom: 1px solid #D8D8D0;
+  padding: 10px 14px; border-bottom: 1px solid var(--line-soft);
   display: flex; flex-direction: column; gap: 4px;
 }
-.cell:nth-child(odd) { border-right: 1px solid #D8D8D0; }
+.cell:nth-child(odd) { border-right: 1px solid var(--line-soft); }
 .c-lb { font-size: 10px; color: var(--t3); }
 .c-in {
   border: none; background: none; padding: 0;
@@ -264,7 +264,7 @@ const submit = async () => {
 .c-in:focus { outline: none; }
 .prefs-row {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  padding: 12px 14px; background: none; border: none; border-bottom: 1px solid #D8D8D0;
+  padding: 12px 14px; background: none; border: none; border-bottom: 1px solid var(--line-soft);
   cursor: pointer; font-size: 12px; font-weight: 700; color: var(--ink); width: 100%;
 }
 .pr-val { color: var(--t3); font-size: 11px; }

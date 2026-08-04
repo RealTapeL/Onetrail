@@ -61,6 +61,8 @@ onMounted(() => {
               :class="{ on: s === activeScene }" @click="toggleScene(s)">{{ s }}</span>
       </div>
 
+      <button class="pub-btn" @click="$router.push('/routes/new')">+ 发布我的路线</button>
+
       <article v-for="c in items" :key="c.id" class="card"
                @click="$router.push(`/routes/${c.id}`)">
         <img class="card-img" :src="c.img" :alt="c.name" />
@@ -93,8 +95,6 @@ onMounted(() => {
         </template>
         <div v-else class="prv-text">还没有社区评价，走完一条路线后欢迎留下第一条。</div>
       </section>
-
-      <button class="pub-btn" @click="$router.push('/routes/new')">+ 发布我的路线</button>
     </div>
     <TabBar />
   </div>
@@ -143,7 +143,7 @@ onMounted(() => {
 .pr-row:last-child { border-bottom: none; }
 .pr-rank { font-family: var(--silk); font-size: 10px; color: var(--t3); width: 14px; flex: none; }
 .pr-rank.hot { color: var(--lime); font-weight: 700; }
-.pr-name { font-size: 12px; font-weight: 700; color: #FFF; }
+.pr-name { font-size: 12px; font-weight: 700; color: #FFF; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pr-meta { margin-left: auto; font-size: 9px; color: var(--t3); white-space: nowrap; }
 .prv { cursor: pointer; padding: 4px 0; border-bottom: 1px solid var(--line); }
 .prv:last-child { border-bottom: none; }
