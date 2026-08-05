@@ -13,6 +13,16 @@ npm run build      # 产物在 dist/
 npm run preview    # 预览构建产物
 ```
 
+部署到静态服务器时，必须在构建阶段配置后端 API 地址，否则浏览器会把 `POST /api/v1/auth/login` 发给只支持静态文件的服务器并返回 501：
+
+```bash
+cp .env.production.example .env.production
+# 将 VITE_API_BASE 改为正式 HTTPS 后端地址
+npm run build
+```
+
+前端静态服务器只负责返回网页文件；`/api` 请求必须指向 FastAPI 服务或由 Nginx/Caddy 反向代理到 FastAPI，不能由 `python -m http.server` 处理。
+
 桌面视口（≥820px）渲染桌面版 1440px 屏，移动视口（<820px）渲染移动端页面，路由不变。
 前端已接入真实后端：需先启动 backend（uvicorn，8000 端口），详见根目录 README。
 
