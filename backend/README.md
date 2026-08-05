@@ -74,6 +74,23 @@ python -m uvicorn app.main:app --reload
 
 执行测试可安装开发依赖后运行：`pip install -e '.[dev]' && pytest -q`。
 
+## 公网测试前的安全配置
+
+生产环境至少需要设置以下变量，不能沿用 `.env.example` 的占位值：
+
+```env
+ENVIRONMENT=production
+APP_SECRET_KEY=<使用密码管理器生成的随机 32 位以上密钥>
+DATABASE_URL=postgresql+psycopg://<应用账号>:<密码>@<内网数据库地址>:5432/<数据库>?sslmode=require
+CORS_ORIGINS=https://<正式前端域名>
+ALLOWED_HOSTS=<API域名>
+AUTO_CREATE_SCHEMA=false
+```
+
+生产环境会关闭 `/docs`、`/redoc` 和 `/openapi.json`，拒绝默认密钥，并使用严格 Host 校验。`docker-compose.yml` 仅用于本机开发，数据库端口已绑定到 `127.0.0.1`，不要将它作为公网数据库部署方式。
+
+应用内限流是单进程保护层；正式多实例部署还必须在 Nginx、云负载均衡或 WAF 上对登录、注册、推荐、高德代理接口配置共享限流，并限制请求体大小。生产部署应通过 HTTPS，数据库仅允许 API 私网访问，并定期轮换密钥、备份和审计数据库账号权限。
+
 ## 外部服务接入
 
 在 `recommendation/providers.py` 中实现 `WeatherProvider` 与 `MapProvider` 协议，并通过环境变量提供真实服务地址和密钥。适配器必须将外部响应转换为项目定义的领域模型；不要把第三方响应结构泄漏给前端。

@@ -23,12 +23,17 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(user_id: str) -> str:
+    settings = get_settings()
+    now = datetime.now(UTC)
     payload = {
         "sub": user_id,
-        "exp": datetime.now(UTC) + timedelta(days=7),
-        "iat": datetime.now(UTC),
+        "exp": now + timedelta(minutes=settings.access_token_expire_minutes),
+        "iat": now,
+        "iss": settings.jwt_issuer,
+        "aud": settings.jwt_audience,
+        "typ": "access",
     }
-    return jwt.encode(payload, get_settings().app_secret_key, algorithm="HS256")
+    return jwt.encode(payload, settings.app_secret_key, algorithm="HS256")
 
 
 def get_current_user(
@@ -38,8 +43,18 @@ def get_current_user(
     if credentials is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="缺少访问令牌")
     try:
-        payload = jwt.decode(credentials.credentials, get_settings().app_secret_key, algorithms=["HS256"])
+        settings = get_settings()
+        payload = jwt.decode(
+            credentials.credentials,
+            settings.app_secret_key,
+            algorithms=["HS256"],
+            issuer=settings.jwt_issuer,
+            audience=settings.jwt_audience,
+            options={"require": ["sub", "exp", "iat", "iss", "aud", "typ"]},
+        )
         user_id = payload.get("sub")
+        if payload.get("typ") != "access" or not isinstance(user_id, str):
+            raise jwt.InvalidTokenError("invalid access token")
     except jwt.PyJWTError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="访问令牌无效") from exc
     user = db.get(User, user_id)

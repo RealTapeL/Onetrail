@@ -4,11 +4,11 @@ services:
     environment:
       POSTGRES_DB: hiking_decision
       POSTGRES_USER: hiking_app
-      # For local development only. Replace before deploying.
-      POSTGRES_PASSWORD: change-me
+      # Required even for local development; never commit the actual value.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in backend/.env}
     ports:
       # The host already has PostgreSQL on 5432; expose the container on 5433.
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

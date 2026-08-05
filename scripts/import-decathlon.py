@@ -7,6 +7,7 @@
 """
 
 import json
+import os
 import sys
 import urllib.request
 from pathlib import Path
@@ -17,7 +18,10 @@ from sqlalchemy import create_engine, text  # noqa: E402
 from core.config import get_settings  # noqa: E402
 
 API = "http://127.0.0.1:8000/api/v1"
-ACCOUNT = {"email": "admin@onetrail.dev", "password": "admin123456"}
+ACCOUNT = {
+    "email": os.environ.get("ONETRAIL_SEED_EMAIL", ""),
+    "password": os.environ.get("ONETRAIL_SEED_PASSWORD", ""),
+}
 
 
 def call(path: str, method: str = "GET", body: dict | None = None, token: str | None = None):
@@ -32,6 +36,8 @@ def call(path: str, method: str = "GET", body: dict | None = None, token: str | 
 
 
 def main() -> None:
+    if not all(ACCOUNT.values()):
+        raise SystemExit("请先设置 ONETRAIL_SEED_EMAIL 和 ONETRAIL_SEED_PASSWORD（仅用于本地种子数据）")
     items = json.loads(Path("tools/decathlon/items.json").read_text(encoding="utf-8"))
     token = call("/auth/login", "POST", ACCOUNT)["access_token"]
     existing = {e["name"]: e["id"] for e in call("/equipment")}

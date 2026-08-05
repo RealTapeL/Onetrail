@@ -4,20 +4,25 @@
 #   默认 API_BASE=http://127.0.0.1:8000/api/v1
 # 需要后端已启动。幂等：同名路线跳过；已有评价的路线不再重复写入评价。
 import json
+import os
 import sys
 import urllib.parse
 import urllib.request
 
 API = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000/api/v1"
-ADMIN = {"email": "admin@onetrail.dev", "password": "admin123456"}
+SEED_EMAIL = os.environ.get("ONETRAIL_SEED_EMAIL")
+SEED_PASSWORD = os.environ.get("ONETRAIL_SEED_PASSWORD")
+if not SEED_EMAIL or not SEED_PASSWORD:
+    raise SystemExit("请先设置 ONETRAIL_SEED_EMAIL 和 ONETRAIL_SEED_PASSWORD（仅用于本地种子数据）")
+ADMIN = {"email": SEED_EMAIL, "password": SEED_PASSWORD}
 
 # 演示账号（团队成员），用于发布路线与评价
 USERS = [
-    {"email": "ahao@onetrail.dev", "password": "hiker123456", "display_name": "阿豪"},
-    {"email": "xiaoyu@onetrail.dev", "password": "hiker123456", "display_name": "小鱼"},
-    {"email": "laozhou@onetrail.dev", "password": "hiker123456", "display_name": "老周"},
-    {"email": "lizi@onetrail.dev", "password": "hiker123456", "display_name": "栗子"},
-    {"email": "acan@onetrail.dev", "password": "hiker123456", "display_name": "阿灿"},
+    {"email": "ahao@onetrail.dev", "password": SEED_PASSWORD, "display_name": "阿豪"},
+    {"email": "xiaoyu@onetrail.dev", "password": SEED_PASSWORD, "display_name": "小鱼"},
+    {"email": "laozhou@onetrail.dev", "password": SEED_PASSWORD, "display_name": "老周"},
+    {"email": "lizi@onetrail.dev", "password": SEED_PASSWORD, "display_name": "栗子"},
+    {"email": "acan@onetrail.dev", "password": SEED_PASSWORD, "display_name": "阿灿"},
 ]
 
 # 路线数据：均为公开知名线路，里程/爬升/耗时为公开资料约值（见各条 description 备注）

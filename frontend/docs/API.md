@@ -17,7 +17,7 @@
 
 前端 6 屏已接入真实后端，实际生效的契约与本文档初稿有以下差异：
 
-- **认证**：使用后端已有的邮箱+密码+JWT（`POST /api/v1/auth/register|login`、`GET /api/v1/profile/me`）。前端 `/login` 页提供登录/注册，路由守卫拦截未登录访问，token 存 localStorage。种子脚本演示账号 `admin@onetrail.dev / admin123456`。手机号+验证码未实现。
+- **认证**：使用后端已有的邮箱+密码+JWT（`POST /api/v1/auth/register|login`、`GET /api/v1/profile/me`）。前端 `/login` 页提供登录/注册，路由守卫拦截未登录访问，token 存 localStorage。种子脚本通过 `ONETRAIL_SEED_EMAIL` 与 `ONETRAIL_SEED_PASSWORD` 传入本地账号。手机号+验证码未实现。
 - **推荐**：`POST /api/v1/recommendations/plan` 同步返回完整结果（Top 5 `routes` + `alternates` 备选 + 每路线 `risk_notes`/交通/补给/装备建议），不落库，因此没有 `GET /recommendations/{id}`；S2/S4 由前端共享状态驱动。
 - **plans 模块未实现**：S4 的交通/补给/装备清单直接来自推荐响应；checklist 勾选为前端本地状态。时间线与海拔剖面因无真实数据源，保留设计稿静态展示并已在界面标注"示意/演示"。
 - **路线库**：`GET /api/v1/routes` 响应为 `{total, page, items}`（分页参数 `page/page_size`），条目含 `level`（难度映射 easy→1/moderate→2/hard→4/expert→5）与 `average_rating`；筛选参数 `query/tag/level_min/level_max/max_distance_km/crowd`。

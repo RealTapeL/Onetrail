@@ -6,7 +6,9 @@
 set -euo pipefail
 
 API="${1:-http://127.0.0.1:8000/api/v1}"
-ACCOUNT='{"email":"admin@onetrail.dev","password":"admin123456"}'
+: "${ONETRAIL_SEED_EMAIL:?请设置 ONETRAIL_SEED_EMAIL}"
+: "${ONETRAIL_SEED_PASSWORD:?请设置 ONETRAIL_SEED_PASSWORD}"
+ACCOUNT="$(ONETRAIL_SEED_EMAIL="$ONETRAIL_SEED_EMAIL" ONETRAIL_SEED_PASSWORD="$ONETRAIL_SEED_PASSWORD" python3 -c 'import json,os; print(json.dumps({"email":os.environ["ONETRAIL_SEED_EMAIL"],"password":os.environ["ONETRAIL_SEED_PASSWORD"]}))')"
 
 TOKEN="$(curl -sf -X POST "$API/auth/login" -H 'Content-Type: application/json' -d "$ACCOUNT" \
   | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")"

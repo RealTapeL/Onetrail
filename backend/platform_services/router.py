@@ -1,11 +1,12 @@
 import json
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from core.logging import get_client_logger
+from core.rate_limit import auth_rate_limiter
 from database.session import get_db
 from identity.models import User
 from route_content.models import HikingRoute, RouteFavorite, RouteReview
@@ -91,8 +92,10 @@ class ClientLogPayload(BaseModel):
 
 
 @logs_router.post("/client", status_code=204)
-def client_log(payload: ClientLogPayload) -> None:
+def client_log(payload: ClientLogPayload, request: Request) -> None:
     """接收前端上报的运行时错误，写入 logs/frontend.log。无需鉴权，字段限长防灌水。"""
+    client_ip = request.client.host if request.client else "unknown"
+    auth_rate_limiter.check(f"client-log:{client_ip}", limit=60, window_seconds=60)
     level = payload.level.lower()
     log = get_client_logger().error if level in ("error", "fatal") else get_client_logger().warning
     # 换行替换为空格，防止伪造多行日志

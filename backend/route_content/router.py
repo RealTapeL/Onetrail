@@ -1,6 +1,6 @@
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -40,8 +40,8 @@ def get_routes(
     level_max: int | None = None,
     max_distance_km: float | None = None,
     crowd: str | None = None,
-    page: int = 1,
-    page_size: int = 12,
+    page: int = Query(default=1, ge=1, le=100000),
+    page_size: int = Query(default=12, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> RouteListPage:
     total, items = list_routes(

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from core.security import get_current_user
+from core.rate_limit import external_request_limit
 from database.session import get_db
 from identity.models import User
 from recommendation.providers import (
@@ -21,7 +22,7 @@ integration_router = APIRouter(prefix="/integrations", tags=["基础能力"])
 meta_router = APIRouter(prefix="/meta", tags=["基础能力"])
 
 
-@router.post("/plan", response_model=RecommendationResponse)
+@router.post("/plan", response_model=RecommendationResponse, dependencies=[Depends(external_request_limit)])
 def create_recommendation_plan(
     payload: RecommendationRequest,
     current_user: User = Depends(get_current_user),
@@ -45,7 +46,7 @@ def get_integration_status() -> IntegrationStatus:
     )
 
 
-@meta_router.get("/weather-tip")
+@meta_router.get("/weather-tip", dependencies=[Depends(external_request_limit)])
 def get_weather_tip(latitude: float, longitude: float) -> dict[str, str]:
     try:
         map_context = get_map_provider().get_context(latitude, longitude, date.today())
@@ -62,7 +63,7 @@ def get_weather_tip(latitude: float, longitude: float) -> dict[str, str]:
     return {"text": " · ".join(parts)}
 
 
-@meta_router.get("/geocode")
+@meta_router.get("/geocode", dependencies=[Depends(external_request_limit)])
 def geocode_city(city: str) -> dict:
     """城市/地名 → 坐标（S1/M1 表单的目的地输入用）。"""
     if not city.strip():

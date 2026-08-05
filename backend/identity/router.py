@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from core.security import create_access_token, get_current_user, hash_password, verify_password
+from core.rate_limit import auth_request_limit
 from database.session import get_db
 from identity.models import HikingPreference, User
 from identity.schemas import (
@@ -21,11 +22,12 @@ router = APIRouter(prefix="/auth", tags=["身份与偏好"])
 profile_router = APIRouter(prefix="/profile", tags=["身份与偏好"])
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(auth_request_limit)])
 def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> User:
-    if db.scalar(select(User).where(User.email == payload.email)):
+    email = str(payload.email).lower()
+    if db.scalar(select(User).where(User.email == email)):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="邮箱已注册")
-    user = User(email=payload.email, display_name=payload.display_name, password_hash=hash_password(payload.password))
+    user = User(email=email, display_name=payload.display_name.strip(), password_hash=hash_password(payload.password))
     db.add(user)
     try:
         db.commit()
@@ -37,9 +39,9 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> User:
     return user
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=TokenResponse, dependencies=[Depends(auth_request_limit)])
 def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
-    user = db.scalar(select(User).where(User.email == payload.email))
+    user = db.scalar(select(User).where(User.email == str(payload.email).lower()))
     if user is None or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="邮箱或密码错误")
     return TokenResponse(access_token=create_access_token(user.id))

@@ -46,14 +46,6 @@ const switchMode = () => {
   errorMsg.value = ''
 }
 
-/** 演示账号一键进入（本地预览用，免输账号密码） */
-const demoLogin = async () => {
-  if (submitting.value) return
-  mode.value = 'login'
-  form.email = 'admin@onetrail.dev'
-  form.password = 'admin123456'
-  await submit()
-}
 </script>
 
 <template>
@@ -76,7 +68,7 @@ const demoLogin = async () => {
       <label v-if="mode === 'register'" class="lb">昵称 · NAME</label>
       <input v-if="mode === 'register'" v-model="form.displayName" class="in" placeholder="阿绿" @keyup.enter="submit" />
       <label class="lb">密码 · PASSWORD</label>
-      <input v-model="form.password" type="password" class="in" placeholder="至少 8 位" @keyup.enter="submit" />
+      <input v-model="form.password" type="password" class="in" placeholder="至少 12 位" @keyup.enter="submit" />
 
       <div v-if="errorMsg" class="err">{{ errorMsg }}</div>
 
@@ -86,7 +78,6 @@ const demoLogin = async () => {
       <button class="switch" @click="switchMode">
         {{ mode === 'login' ? '没有账号？去注册 →' : '已有账号？去登录 →' }}
       </button>
-      <button class="demo" @click="demoLogin">⚡ 演示账号一键进入</button>
     </div>
   </div>
 </template>
